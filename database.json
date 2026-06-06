@@ -1,0 +1,641 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Tỳ Hưu Thạch Anh Hồng",
+      "category": "da-quy",
+      "price": 1850000,
+      "originalPrice": 2200000,
+      "rating": 4.9,
+      "reviews": 12,
+      "sold": 28,
+      "image": "https://anphatgems.vn/wp-content/uploads/2023/11/ty-huu-thach-anh-hong-m2616339-1.jpg",
+      "badge": "Bán Chạy",
+      "badgeColor": "#c0392b",
+      "description": "Tỳ Hưu làm từ thạch anh hồng tự nhiên, tượng trưng cho may mắn và tài lộc. Kích thước 8cm×5cm, phù hợp đặt bàn làm việc hoặc két sắt.",
+      "features": [
+        "100% đá tự nhiên",
+        "Kèm chứng nhận",
+        "Hộp quà sang trọng",
+        "Kích hoạt phong thủy"
+      ],
+      "stock": 50,
+      "element": "Kim",
+      "destiny": [
+        "Thổ",
+        "Kim"
+      ],
+      "images": [
+        "https://anphatgems.vn/wp-content/uploads/2023/11/ty-huu-thach-anh-hong-m2616339-1.jpg",
+        "https://anphatgems.vn/wp-content/uploads/2023/11/ty-huu-thach-anh-hong-m2616339-3.jpg",
+        "https://anphatgems.vn/wp-content/uploads/2023/12/combo-ty-huu-thiem-thu-thach-anh-hong-m070136-2.jpg",
+        "https://anphatgems.vn/wp-content/uploads/2023/12/combo-ty-huu-thiem-thu-thach-anh-hong-m070136-1.jpg"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Vòng Đá Thạch Anh Trắng",
+      "category": "da-quy",
+      "price": 680000,
+      "originalPrice": 850000,
+      "rating": 4.8,
+      "reviews": 23,
+      "sold": 47,
+      "image": "https://cdn0817.cdn4s.com/media/s%E1%BA%A3n%20ph%E1%BA%A9m/vong%20da%20phong%20thuy%20theo%20menh/menh%20kim/v%C3%B2ng-th%E1%BA%A1ch-anh-tr%E1%BA%AFng-s%E1%BB%AFa-d%E1%BB%ABa1-mykimgems-com-vn.jpg",
+      "badge": "Hot",
+      "badgeColor": "#8e44ad",
+      "description": "Vòng tay thạch anh tím Amethyst Brazil cao cấp, hạt 8mm, giúp an thần, giảm stress và tăng trí tuệ.",
+      "features": [
+        "Amethyst Brazil A+",
+        "Hạt đường kính 8mm",
+        "Dây đàn hồi cao cấp",
+        "Chứng nhận tự nhiên"
+      ],
+      "stock": 120,
+      "element": "Thủy",
+      "destiny": [
+        "Kim",
+        "Thủy"
+      ],
+      "images": [
+        "https://joca.vn/wp-content/uploads/2020/04/94263020_554529182165370_7636031430824296448_o.jpg",
+        "https://khodathachanh.com/wp-content/uploads/2024/01/vong-da-thach-anh-trang-tu-nhien.jpg",
+        "https://roxi.vn/images/detailed/33/vong-tay-phong-thuy-thach-anh-trang.jpg",
+        "https://kimtuthap.vn/wp-content/uploads/2019/12/vong-thach-anh-trang-duc.jpg"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Cầu Pha Lê Trắng 10cm",
+      "category": "da-quy",
+      "price": 1200000,
+      "originalPrice": 1500000,
+      "rating": 5.0,
+      "reviews": 8,
+      "sold": 19,
+      "image": "https://aiva.com.vn/wp-content/uploads/2023/05/qua-cau-thach-anh-trang-10cm.jpg",
+      "badge": "Mới",
+      "badgeColor": "#27ae60",
+      "description": "Cầu pha lê trắng trong suốt 100%, đường kính 10cm, thu hút năng lượng dương, cân bằng ngũ hành.",
+      "features": [
+        "Pha lê tự nhiên 100%",
+        "Đường kính 10cm",
+        "Kèm đế gỗ rosewood",
+        "Chứng nhận AAA"
+      ],
+      "stock": 30,
+      "element": "Kim",
+      "destiny": [
+        "Mọi mệnh"
+      ],
+      "images": [
+        "https://aiva.com.vn/wp-content/uploads/2023/05/qua-cau-thach-anh-trang-10cm.jpg",
+        "https://aiva.com.vn/wp-content/uploads/2023/05/qua-cau-thach-anh-trang-10cm-1.jpg",
+        "https://aiva.com.vn/wp-content/uploads/2023/05/qua-cau-thach-anh-trang-10cm-3.jpg",
+        "https://static-images.vnncdn.net/vps_images_publish/000001/000003/2026/1/30/nhieu-gia-dinh-dat-qua-cau-pha-le-trong-nha-vi-ly-do-nay-2448.png?width=0&s=6xEk4e_CwtIet5wbwmWQ4Q"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Đá Mắt Hổ Vàng",
+      "category": "da-quy",
+      "price": 450000,
+      "originalPrice": 580000,
+      "rating": 4.6,
+      "reviews": 16,
+      "sold": 34,
+      "image": "https://anphatgems.vn/wp-content/uploads/2025/07/da-mat-ho-vang-nau-vun-tho-1a-003-0411a-12-2.jpg",
+      "badge": null,
+      "badgeColor": null,
+      "description": "Đá mắt hổ vàng tự nhiên dạng thô, tăng cường ý chí, bảo vệ năng lượng tiêu cực.",
+      "features": [
+        "Đá tự nhiên",
+        "Dạng thô nguyên bản",
+        "Năng lượng mạnh",
+        "Kèm túi nhung"
+      ],
+      "stock": 80,
+      "element": "Thổ",
+      "destiny": [
+        "Mộc",
+        "Hỏa"
+      ],
+      "images": [
+        "https://anphatgems.vn/wp-content/uploads/2025/07/da-mat-ho-vang-nau-vun-tho-1a-003-0411a-12.jpg",
+        "https://anphatgems.vn/wp-content/uploads/2025/07/da-mat-ho-vang-nau-vun-tho-1a-003-0411a-12-2.jpg",
+        "https://anphatgems.vn/wp-content/uploads/2025/07/da-mat-ho-vang-nau-vun-tho-1a-003-0411a-12-1.jpg",
+        "https://anphatgems.vn/wp-content/uploads/2023/12/soi-thach-anh-mat-ho.jpg"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Tượng Di Lặc Gỗ Trầm Hương",
+      "category": "tuong-phat",
+      "price": 3200000,
+      "originalPrice": 3800000,
+      "rating": 4.7,
+      "reviews": 4,
+      "sold": 8,
+      "image": "https://tuonggothinhvuong.com/wp-content/uploads/2024/02/tuong-phat-di-lac-go-tram-huong-indo-1.jpg",
+      "badge": "Cao Cấp",
+      "badgeColor": "#d4a017",
+      "description": "Tượng Di Lặc điêu khắc thủ công từ gỗ trầm hương Khánh Hòa, cao 25cm, mang lại hạnh phúc và bình an.",
+      "features": [
+        "Gỗ trầm hương Khánh Hòa",
+        "Điêu khắc thủ công",
+        "Cao 25cm",
+        "Kèm đế đồng"
+      ],
+      "stock": 15,
+      "element": "Mộc",
+      "destiny": [
+        "Mọi mệnh"
+      ],
+      "images": [
+        "https://tuonggothinhvuong.com/wp-content/uploads/2024/02/tuong-phat-di-lac-go-tram-huong-indo-1.jpg",
+        "https://bizweb.dktcdn.net/100/293/753/products/tuong-go-tram-huong-phat-di-lac-de-xe-hoi-7.jpg?v=1747899646930",
+        "https://tuonggothinhvuong.com/wp-content/uploads/2024/02/tuong-phat-di-lac-go-tram-huong-indo-2.jpg",
+        "https://annhientramhuong.com/wp-content/uploads/2021/05/z2512603729784_fc440cdb6ed1761115fe097fa807928b.jpg"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Tượng Quan Âm Bạch Ngọc",
+      "category": "tuong-phat",
+      "price": 5500000,
+      "originalPrice": 6500000,
+      "rating": 4.6,
+      "reviews": 3,
+      "sold": 5,
+      "image": "https://phapduyen.com/wp-content/uploads/2024/06/00-11-1.jpg",
+      "badge": "Độc Quyền",
+      "badgeColor": "#2980b9",
+      "description": "Tượng Quan Thế Âm Bồ Tát từ bạch ngọc Myanmar cao cấp, cao 30cm, phù hộ bình an.",
+      "features": [
+        "Bạch ngọc Myanmar A+",
+        "Cao 30cm",
+        "Điêu khắc tinh xảo",
+        "Hộp gỗ đặc biệt"
+      ],
+      "stock": 8,
+      "element": "Thủy",
+      "destiny": [
+        "Mọi mệnh"
+      ],
+      "images": [
+        "https://phapduyen.com/wp-content/uploads/2024/06/00-11-1.jpg",
+        "https://dieutuongam.com/pictures/catalog/products/dieutuongtrangnghiem/tuongquanam/tuong-quan-am-han-bach-ngoc-trang-144tqa040-01.jpg",
+        "https://dieutuongam.com/pictures/catalog/products/dieutuongtrangnghiem/tuongquanam/tuong-quan-am-y-ru-han-bach-ngoc-144tqa060-02.jpg",
+        "https://dieutuongam.com/pictures/catalog/products/dieutuongtrangnghiem/tuongquanam/tuong-quan-am-han-bach-ngoc-trang-144tqa038-01.jpg"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Vòng Tay Trầm Hương 108 Hạt",
+      "category": "vong-tay",
+      "price": 2800000,
+      "originalPrice": 3500000,
+      "rating": 5.0,
+      "reviews": 14,
+      "sold": 31,
+      "image": "https://cdn.shopify.com/s/files/1/0644/2958/8701/files/108_h_t_480x480.jpg?v=1731472044",
+      "badge": "Bán Chạy",
+      "badgeColor": "#c0392b",
+      "description": "Vòng tay trầm hương Khánh Hòa 108 hạt 6mm, hương thơm tự nhiên lâu dài, giúp tĩnh tâm thiền định.",
+      "features": [
+        "Trầm hương Khánh Hòa",
+        "108 hạt 6mm",
+        "Hương thơm tự nhiên",
+        "Chứng nhận chính hãng"
+      ],
+      "stock": 45,
+      "element": "Mộc",
+      "destiny": [
+        "Mộc",
+        "Hỏa"
+      ],
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0644/2958/8701/files/108_h_t_480x480.jpg?v=1731472044",
+        "https://tramhuonghudo.com/uploads/12-2021/6li25t.jpg",
+        "https://tramhuongviet.com/wp-content/uploads/2023/05/vong-tram-huong-108-hat-ch17.jpg",
+        "https://tramhuongviet.com/wp-content/uploads/2023/05/vong-tram-huong-108-hat-ch11.jpg"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Vòng tay đá phong thuỷ mắt hổ vàng nâu",
+      "category": "vong-tay",
+      "price": 1650000,
+      "originalPrice": 2000000,
+      "rating": 4.6,
+      "reviews": 9,
+      "sold": 22,
+      "image": "https://vongda5a.com/wp-content/uploads/2019/04/V%C3%B2ng-%C4%91%C3%A1-m%E1%BA%AFt-h%E1%BB%95-v%C3%A0ng-n%C3%A2u-8-ly-10-ly-12-ly-14-ly-16-ly-5A-t%E1%BB%B1-nhi%C3%AAn.jpg",
+      "badge": "Nhập Khẩu",
+      "badgeColor": "#e67e22",
+      "description": "Vòng tay hổ phách Baltic tự nhiên, màu vàng mật đặc trưng, chứa nhựa cây 40 triệu năm tuổi.",
+      "features": [
+        "Hổ phách Baltic tự nhiên",
+        "Chứng nhận UV test",
+        "Hạt 10-12mm",
+        "Kèm sợi bạc 925"
+      ],
+      "stock": 35,
+      "element": "Hỏa",
+      "destiny": [
+        "Thổ",
+        "Kim"
+      ],
+      "images": [
+        "https://vongda5a.com/wp-content/uploads/2019/04/V%C3%B2ng-%C4%91%C3%A1-m%E1%BA%AFt-h%E1%BB%95-v%C3%A0ng-n%C3%A2u-8-ly-10-ly-12-ly-14-ly-16-ly-5A-t%E1%BB%B1-nhi%C3%AAn.jpg",
+        "https://daquyvietnam.com.vn/wp-content/uploads/2023/11/vong-da-mat-ho-deo-tay-nao-la-tot-nhat-1.jpg",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcwLgIzvL0JI5JumxiZSQsUJUD6zWG4tAujQ&s",
+        "https://ngemsvn.com/wp-content/uploads/2024/05/260525c26a08cb5692196.jpg"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Tranh Tùng Hạc Trường Thọ",
+      "category": "tranh-phong-thuy",
+      "price": 2100000,
+      "originalPrice": 2600000,
+      "rating": 4.9,
+      "reviews": 7,
+      "sold": 17,
+      "image": "https://artnam.vn/wp-content/uploads/2025/09/tranh-tung-hac-dien-nien-1-1.webp",
+      "badge": "Phổ Biến",
+      "badgeColor": "#16a085",
+      "description": "Tranh thêu tay Tùng Hạc trên nền lụa cao cấp, kích thước 60×90cm, phù hợp treo phòng khách.",
+      "features": [
+        "Thêu tay 100%",
+        "Lụa Trung Hoa cao cấp",
+        "Khung gỗ đỏ",
+        "60×90cm"
+      ],
+      "stock": 25,
+      "element": "Mộc",
+      "destiny": [
+        "Mọi mệnh"
+      ],
+      "images": [
+        "https://artnam.vn/wp-content/uploads/2025/09/tranh-tung-hac-dien-nien-1-1.webp",
+        "https://xqvietnam.com/upload/images/3404%20bach%20lao%20truong%20tho%2012%20s.png",
+        "https://xqvietnam.com/upload/images/2475%20tung%20hac%201%20s.png",
+        "https://theuviet.com/sites/default/files/minify/tung-hac-iii-1472114057.jpg"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Tranh Cửu Ngư Phát Tài",
+      "category": "tranh-phong-thuy",
+      "price": 1800000,
+      "originalPrice": 2200000,
+      "rating": 4.7,
+      "reviews": 11,
+      "sold": 26,
+      "image": "https://tranhphongthuyvietnam.com/wp-content/uploads/2018/06/tranh-cuu-ngu-quan-hoi-treo-tuong-dep-y-ngha-phong-thuy.jpg",
+      "badge": "Mới",
+      "badgeColor": "#27ae60",
+      "description": "Tranh 9 con cá vàng tượng trưng cửu phúc, in canvas cao cấp kèm khung composite, 80×60cm.",
+      "features": [
+        "In canvas cao cấp",
+        "Khung composite",
+        "80×60cm",
+        "Màu sắc bền 50 năm"
+      ],
+      "stock": 60,
+      "element": "Thủy",
+      "destiny": [
+        "Thủy",
+        "Mộc"
+      ],
+      "images": [
+        "https://tranhphongthuyvietnam.com/wp-content/uploads/2018/06/tranh-cuu-ngu-quan-hoi-treo-tuong-dep-y-ngha-phong-thuy.jpg",
+        "https://static1.cafeland.vn/cafelandData/upload/tintuc/xuhuongcamnang/2020/04/tuan-04/10-tranh-theu-chu-thap-1588166322.jpg",
+        "https://theuviet.com/wp-content/uploads/2019/12/ca-chep-va-hoa-sen-cuu-ngu-do-1481280877.jpg",
+        "https://theutay.vn/data/Product/-222555.jpg"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "La Kinh Phong Thủy Đồng Cổ",
+      "category": "la-kinh",
+      "price": 3600000,
+      "originalPrice": 4200000,
+      "rating": 4.8,
+      "reviews": 3,
+      "sold": 6,
+      "image": "https://vifengshui.vn/data/products/lsl1587165306.jpg",
+      "badge": "Chuyên Gia",
+      "badgeColor": "#c0392b",
+      "description": "La kinh đồng đúc thủ công, 36 vòng chi tiết, dành cho phong thủy sư chuyên nghiệp.",
+      "features": [
+        "Đồng đúc thủ công",
+        "36 vòng chi tiết",
+        "Kim la kinh chính xác",
+        "Hộp gỗ gụ"
+      ],
+      "stock": 12,
+      "element": "Kim",
+      "destiny": [
+        "Kim",
+        "Thủy"
+      ],
+      "images": [
+        "https://vifengshui.vn/data/products/lsl1587165306.jpg",
+        "https://bizweb.dktcdn.net/100/268/764/files/la-kinh-phong-thuy-maxi-4.jpg?v=1621068685576",
+        "https://phongthuyhoanggia.com/wp-content/uploads/2023/12/z4980582295156_87fda54bfad856bb7d6d226fedd4b977-compressed-769x1024.jpg",
+        "https://phongthuyhocvungtau.com/wp-content/uploads/2021/11/La-kinh-bang-dong.jpg"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Bát Quái Đồng Treo Cửa",
+      "category": "la-kinh",
+      "price": 850000,
+      "originalPrice": 1100000,
+      "rating": 5.0,
+      "reviews": 18,
+      "sold": 38,
+      "image": "https://down-vn.img.susercontent.com/file/sg-11134201-23010-1p6zt9knsxlvb9",
+      "badge": "Bán Chạy",
+      "badgeColor": "#c0392b",
+      "description": "Bát quái đồng nguyên chất treo cửa, đường kính 20cm, hóa giải sát khí, bảo vệ gia đình.",
+      "features": [
+        "Đồng nguyên chất",
+        "Đường kính 20cm",
+        "Gương lồi chống sát",
+        "Kèm dây đỏ may mắn"
+      ],
+      "stock": 90,
+      "element": "Kim",
+      "destiny": [
+        "Mọi mệnh"
+      ],
+      "images": [
+        "https://down-vn.img.susercontent.com/file/sg-11134201-23010-1p6zt9knsxlvb9",
+        "https://bizweb.dktcdn.net/100/244/861/files/guong-bat-quai-dong-lom-2-jpg.jpg?v=1527147980269",
+        "https://nguoiduatin.mediacdn.vn/zoom/700_438/media/bui-thi-lan-anh/2020/06/25/cach-treo-guong-bat-quai.png",
+        "https://spacet-release.s3.ap-southeast-1.amazonaws.com/img/blog/2024-03-11/guong-bat-quai-loi-65ee72e457c6bf68954341e0.webp"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Cây Kim Tiền Bonsai Đồng",
+      "category": "cay-phong-thuy",
+      "price": 4500000,
+      "originalPrice": 5200000,
+      "rating": 4.8,
+      "reviews": 4,
+      "sold": 9,
+      "image": "https://congcutot.vn/uploads/store/page/howto/2021/nhung-mau-bonsai-bang-dong-dep-4.jpg",
+      "badge": "Sang Trọng",
+      "badgeColor": "#d4a017",
+      "description": "Cây kim tiền bonsai lá đồng tự nhiên, chậu đá granite, cao 45cm, tượng trưng tiền tài phú quý.",
+      "features": [
+        "Lá đồng tự nhiên",
+        "Chậu đá granite",
+        "Cao 45cm",
+        "Phù hợp văn phòng"
+      ],
+      "stock": 20,
+      "element": "Mộc",
+      "destiny": [
+        "Thổ",
+        "Kim"
+      ],
+      "images": [
+        "https://congcutot.vn/uploads/store/page/howto/2021/nhung-mau-bonsai-bang-dong-dep-4.jpg",
+        "https://www.indoorgarden.vn/wp-content/uploads/2021/05/kim-tien-dong-1.jpg",
+        "https://quatangsep.vn/wp-content/uploads/2025/08/Cay-kim-tien-ma-vang-2.jpeg",
+        "https://www.indoorgarden.vn/wp-content/uploads/2021/05/kim-tien-dong-5.jpg"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Cây May Mắn Tre Phong Thủy",
+      "category": "cay-phong-thuy",
+      "price": 380000,
+      "originalPrice": 480000,
+      "rating": 4.9,
+      "reviews": 24,
+      "sold": 52,
+      "image": "https://cdn.eva.vn//upload/4-2016/images/2016-12-02/what-exactly-does-lucky-bamboo-mean-1480635095-width470height470.jpg",
+      "badge": null,
+      "badgeColor": null,
+      "description": "Cây tre may mắn Lucky Bamboo 3 thân, chậu thủy tinh với đá cuội màu, dễ chăm sóc.",
+      "features": [
+        "3 thân tre may mắn",
+        "Chậu thủy tinh",
+        "Đá cuội màu sắc",
+        "Không cần đất"
+      ],
+      "stock": 200,
+      "element": "Mộc",
+      "destiny": [
+        "Mộc",
+        "Hỏa"
+      ],
+      "images": [
+        "https://cdn.eva.vn//upload/4-2016/images/2016-12-02/what-exactly-does-lucky-bamboo-mean-1480635095-width470height470.jpg",
+        "https://danviet.ex-cdn.com/files/f1/296231569849192448/2021/5/15/imgsemdepvn2fshare2fimage2f20212f042f152f1-lucky-bamboo-use-for-good-feng-shui-134919129-1621069623118-1621069624876783402486.png",
+        "https://www.way.com.vn/vnt_upload/news/phong_thuy_tuong_so/y-nghia-cua-cay-tre-may-man-trong-phong-thuy.png",
+        "https://images.baoangiang.com.vn/image/fckeditor/upload/2022/20221021/images/phatdu-06361455.jpg"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Trầm Hương Khánh Hòa 100g",
+      "category": "huong-thom",
+      "price": 1200000,
+      "originalPrice": 1500000,
+      "rating": 4.8,
+      "reviews": 10,
+      "sold": 24,
+      "image": "https://chamkhanhhoa.com/wp-content/uploads/2020/10/su-dung-bot-tram-huong-de-xong-nha-291.png",
+      "badge": "Đặc Sản",
+      "badgeColor": "#8B4513",
+      "description": "Trầm hương Khánh Hòa tự nhiên 100g, loại A, hương thơm đặc trưng, dùng đốt hoặc trưng bày.",
+      "features": [
+        "Khánh Hòa 100% tự nhiên",
+        "Loại A chất lượng cao",
+        "100g",
+        "Hộp gỗ bảo quản"
+      ],
+      "stock": 75,
+      "element": "Mộc",
+      "destiny": [
+        "Mọi mệnh"
+      ],
+      "images": [
+        "https://chamkhanhhoa.com/wp-content/uploads/2020/10/su-dung-bot-tram-huong-de-xong-nha-291.png",
+        "https://tramhuongsinhhocttt.com/public/upload/files/t%E1%BA%A1i%20sao%20kh%C3%A1nh%20h%C3%B2a%20%C4%91%C6%B0%E1%BB%A3c%20xem%20l%C3%A0%20th%C3%B9%20ph%E1%BB%A7%20c%E1%BB%A7a%20tr%E1%BA%A7m%20h%C6%B0%C6%A1ng%20vi%E1%BB%87t%20nam/4.jpg",
+        "https://mia.vn/media/uploads/blog-du-lich/khanh_hoa_la_xu_tram_huong_non_cao_bien_rong_nguoi_thuong_di_ve_9-1623228967.jpg",
+        "https://mia.vn/media/uploads/blog-du-lich/khanh_hoa_la_xu_tram_huong_non_cao_bien_rong_nguoi_thuong_di_ve_9-1623228967.jpg"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Nhang Trầm Thiên Nhiên 100 Cây",
+      "category": "huong-thom",
+      "price": 250000,
+      "originalPrice": 320000,
+      "rating": 4.9,
+      "reviews": 29,
+      "sold": 63,
+      "image": "https://tramhuonghongphuc.vn/wp-content/uploads/2022/11/z3850853717325_9890e6b251d551d3ffc09e066404e774.jpg",
+      "badge": "Bán Chạy",
+      "badgeColor": "#c0392b",
+      "description": "Nhang trầm thiên nhiên không hóa chất, 100 cây/hộp, thời gian cháy 45 phút/cây.",
+      "features": [
+        "100% thiên nhiên",
+        "Không hóa chất",
+        "100 cây/hộp",
+        "Cháy 45 phút/cây"
+      ],
+      "stock": 500,
+      "element": "Hỏa",
+      "destiny": [
+        "Mọi mệnh"
+      ],
+      "images": [
+        "https://tramhuonghongphuc.vn/wp-content/uploads/2022/11/z3850853717325_9890e6b251d551d3ffc09e066404e774.jpg",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdIqcmj8w7ojt1UJvqI9e_Pt_OkILqizDuLQ&s",
+        "https://xuongtramaulac.com/shoop_vn/uploads/2023/06/Dddnf.jpg",
+        "https://tramhuonghongphuc.vn/wp-content/uploads/2022/11/z3850853693565_634d10d62e9cf7d2aa156d52a9ee7359.jpg"
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": "all",
+      "name": "Tất Cả"
+    },
+    {
+      "id": "da-quy",
+      "name": "Đá Quý & Tinh Thể"
+    },
+    {
+      "id": "tuong-phat",
+      "name": "Tượng Phật & Thần"
+    },
+    {
+      "id": "vong-tay",
+      "name": "Vòng Tay Phong Thủy"
+    },
+    {
+      "id": "tranh-phong-thuy",
+      "name": "Tranh Phong Thủy"
+    },
+    {
+      "id": "la-kinh",
+      "name": "La Kinh & Bát Quái"
+    },
+    {
+      "id": "cay-phong-thuy",
+      "name": "Cây Phong Thủy"
+    },
+    {
+      "id": "huong-thom",
+      "name": "Hương & Trầm"
+    }
+  ],
+  "testimonials": [
+    {
+      "id": 1,
+      "name": "Nguyễn Thị Lan",
+      "avatar": "N",
+      "color": "#c0392b",
+      "rating": 5,
+      "text": "Mua vòng thạch anh tím cho chồng, anh ấy đeo 3 tháng thì được thăng chức. Không biết có phải nhờ phong thủy không nhưng rất vui!",
+      "product": "Vòng Thạch Anh Tím Amethyst",
+      "date": "15/03/2024"
+    },
+    {
+      "id": 2,
+      "name": "Trần Văn Minh",
+      "avatar": "T",
+      "color": "#2980b9",
+      "rating": 5,
+      "text": "Shop rất chuyên nghiệp, sản phẩm đúng như mô tả. Tỳ Hưu thạch anh hồng rất đẹp, đặt bàn làm việc thấy tâm trạng thoải mái hơn.",
+      "product": "Tỳ Hưu Thạch Anh Hồng",
+      "date": "02/04/2024"
+    },
+    {
+      "id": 3,
+      "name": "Phạm Thu Hương",
+      "avatar": "P",
+      "color": "#27ae60",
+      "rating": 5,
+      "text": "La kinh phong thủy chất lượng tuyệt vời, đúng hàng cổ, kim xoay rất nhạy. Shop đóng gói cẩn thận, giao hàng nhanh.",
+      "product": "La Kinh Phong Thủy Đồng Cổ",
+      "date": "18/04/2024"
+    },
+    {
+      "id": 4,
+      "name": "Lê Quốc Bảo",
+      "avatar": "L",
+      "color": "#e67e22",
+      "rating": 5,
+      "text": "Trầm hương Khánh Hòa hương thơm tuyệt vời, đúng mùi trầm rừng tự nhiên. Sẽ mua thêm lần sau!",
+      "product": "Trầm Hương Khánh Hòa 100g",
+      "date": "05/05/2024"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "Quản Trị Viên",
+      "email": "admin@machnha.vn",
+      "password": "Admin@123",
+      "role": "admin",
+      "phone": "0909000001",
+      "avatar": "A",
+      "color": "#C9A84C",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "active": true,
+      "birthYear": null,
+      "gender": null,
+      "element": null
+    },
+    {
+      "id": 2,
+      "name": "Nguyễn Thị Demo",
+      "email": "demo@gmail.com",
+      "password": "Demo@123",
+      "role": "user",
+      "phone": "0909123456",
+      "avatar": "N",
+      "color": "#2980b9",
+      "createdAt": "2024-03-01T00:00:00.000Z",
+      "active": true,
+      "birthYear": 1990,
+      "gender": "female",
+      "element": "Kim"
+    }
+  ],
+  "orders": [],
+  "coupons": [
+    {
+      "id": 1,
+      "code": "MACHNHA10",
+      "discount": 10,
+      "type": "percent"
+    },
+    {
+      "id": 2,
+      "code": "MACHNHA20",
+      "discount": 20,
+      "type": "percent"
+    },
+    {
+      "id": 3,
+      "code": "NEWUSER15",
+      "discount": 15,
+      "type": "percent"
+    }
+  ],
+  "analysisPayments": [],
+  "subscribers": [],
+  "contacts": []
+}
