@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Sparkles, CheckCircle, Star, Clock,
   MessageCircle, Video, Calendar,
@@ -7,7 +7,8 @@ import {
 import FengShuiAnalyzer from "../components/FengShuiAnalyzer";
 import AIVisualConsultant from "../components/AIVisualConsultant";
 import { useFetch } from "../hooks/useFetch";
-import { createAnalysisPayment, getAnalysisPayment, getProducts } from "../services/api";
+import { createAnalysisPayment, getAnalysisPayment, getProducts, getUserById, patchUser } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 /* ═══════════════════════════════════════════
    QR builder
@@ -28,7 +29,7 @@ function getSlots() {
 function addSlots(n) {
   try { localStorage.setItem("mach_nha_slots", String(getSlots() + n)); } catch {}
 }
-function consumeSlot() {
+function consumeLocalSlot() {
   // Tiêu thụ 1 lượt — gọi khi người dùng bấm mở 1 ô khóa
   const cur = getSlots();
   if (cur <= 0) return false;
@@ -173,7 +174,7 @@ Bố trí vật phẩm:
 /* ═══════════════════════════════════════════
    Modal thanh toán
 ═══════════════════════════════════════════ */
-function PaymentModal({ pkg, onClose, onActivated }) {
+function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
   const [step, setStep]   = useState("qr");
   const [copied, setCopied] = useState(false);
   const [payment, setPayment] = useState(null);
@@ -198,9 +199,12 @@ function PaymentModal({ pkg, onClose, onActivated }) {
         bank: "MoMo",
         accountName: "Nguyễn Ngọc Huy",
         accountNumber: "0968386408",
+        userId: user?.id || null,
+        userName: user?.name || "Khách chưa đăng nhập",
+        userEmail: user?.email || null,
       });
       setPayment(created);
-      setStatusMsg("Đã gửi yêu cầu xác nhận. Lượt chỉ được cộng khi giao dịch được xác nhận thành công.");
+      setStatusMsg("Đã gửi yêu cầu xác nhận. Lượt sẽ được cộng ngay khi admin đối soát và xác nhận thanh toán.");
     } catch (error) {
       setStatusMsg(error.message || "Không gửi được yêu cầu xác nhận thanh toán.");
     } finally {
@@ -216,10 +220,15 @@ function PaymentModal({ pkg, onClose, onActivated }) {
       const latest = await getAnalysisPayment(payment.id);
       setPayment(latest);
       if (latest.status === "paid") {
-        addSlots(Number(latest.slots || pkg.slots));
+        if (latest.userId) {
+          const fresh = await getUserById(latest.userId);
+          syncUser?.(fresh);
+        } else {
+          addSlots(Number(latest.slots || pkg.slots));
+        }
         setStep("done");
       } else {
-        setStatusMsg("Giao dịch chưa được xác nhận. Vui lòng chờ đối soát thanh toán.");
+        setStatusMsg("Giao dịch chưa được xác nhận. Admin cần đối soát trong trang quản trị trước khi lượt được cộng.");
       }
     } catch (error) {
       setStatusMsg(error.message || "Không kiểm tra được trạng thái thanh toán.");
@@ -381,16 +390,21 @@ function InlinePurchase({ onBuy, slotsNeeded }) {
    Trang Tư Vấn
 ═══════════════════════════════════════════ */
 export default function TuVanPage() {
+  const { user, syncUser } = useAuth();
   const [tab,            setTab]          = useState("free");
   const [payPkg,         setPayPkg]       = useState(null);
   const [analyzed,           setAnalyzed]           = useState(false);
   const [analysisResult,     setAnalysisResult]     = useState(null);
-  const [slots,              setSlots]              = useState(getSlots);
+  const [slots,              setSlots]              = useState(() => Number(user?.analysisSlots ?? getSlots()));
   const [openedIds,          setOpenedIds]          = useState([]);
   const [showInlinePurchase, setShowInlinePurchase] = useState(false);
   const { data: products = [] } = useFetch(getProducts, []);
 
-  const refreshSlots = () => { setSlots(getSlots()); };
+  const refreshSlots = () => { setSlots(Number(user?.analysisSlots ?? getSlots())); };
+
+  useEffect(() => {
+    setSlots(Number(user?.analysisSlots ?? getSlots()));
+  }, [user?.analysisSlots, user?.id]);
 
   // Callback khi FengShuiAnalyzer hoàn thành phân tích
   const handleAnalyzed = (result) => {
@@ -407,12 +421,26 @@ export default function TuVanPage() {
     refreshSlots();
   };
 
+  const openSectionWithAccount = async (id) => {
+    if (openedIds.includes(id)) return;
+    if (user?.id) {
+      const cur = Number(user.analysisSlots || 0);
+      if (cur <= 0) return;
+      const updated = await patchUser(user.id, { analysisSlots: cur - 1 });
+      syncUser(updated);
+    } else if (!consumeLocalSlot()) {
+      return;
+    }
+    setOpenedIds(prev => [...prev, id]);
+    setSlots((cur) => Math.max(0, Number(cur || 0) - 1));
+  };
+
   const slotsAfterAnalysis = slots; // số lượt còn lại hiện tại
 
   return (
     <div style={{ paddingTop:120, minHeight:"100vh" }}>
       {payPkg && (
-        <PaymentModal pkg={payPkg} onClose={()=>setPayPkg(null)} onActivated={(action)=>{
+        <PaymentModal pkg={payPkg} user={user} syncUser={syncUser} onClose={()=>setPayPkg(null)} onActivated={(action)=>{
           refreshSlots();
           setPayPkg(null);
           if (action === "reset") {
@@ -540,7 +568,7 @@ export default function TuVanPage() {
                           <span style={{ fontWeight:700, fontSize:"0.9rem", color:"var(--cream)" }}>{sec.title}</span>
                         </div>
                         {canOpen ? (
-                          <button onClick={()=>openSection(sec.id)} style={{
+                          <button onClick={()=>openSectionWithAccount(sec.id)} style={{
                             padding:"8px 22px", background:"linear-gradient(135deg,var(--gold-dark),var(--gold))", border:"none", color:"var(--black)",
                             fontFamily:"'Be Vietnam Pro',Raleway,sans-serif", fontWeight:800, fontSize:"0.8rem", borderRadius:4, cursor:"pointer",
                             display:"flex", alignItems:"center", gap:6,

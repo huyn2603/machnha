@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Bot, CheckCircle, Download, Image, ImagePlus, Loader2, Maximize2, Move, Send, SlidersHorizontal, Sparkles } from "lucide-react";
 import { removeBackground } from "@imgly/background-removal";
-import { getImageDataUrl, requestAIConsultation } from "../services/api";
+import { getImageDataUrl, requestAIConsultation, requestHuggingFaceTryOn } from "../services/api";
 
 const formatPrice = (n) => (n || 0).toLocaleString("vi-VN") + "đ";
 
@@ -77,6 +77,19 @@ function makeSoftProductCanvas(product, crop) {
   const ctx = canvas.getContext("2d");
   ctx.drawImage(product, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, crop.sw, crop.sh);
 
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imgData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const isDarkBackdrop = max < 42 && max - min < 18;
+    if (isDarkBackdrop) data[i + 3] = 0;
+  }
+  ctx.putImageData(imgData, 0, 0);
+
   const feather = Math.max(8, Math.round(Math.min(crop.sw, crop.sh) * 0.035));
   const mask = document.createElement("canvas");
   mask.width = crop.sw;
@@ -141,6 +154,26 @@ function trimTransparentImage(img) {
   return trimmed;
 }
 
+function removeDarkBackdropFromCanvas(sourceCanvas) {
+  const canvas = document.createElement("canvas");
+  canvas.width = sourceCanvas.width;
+  canvas.height = sourceCanvas.height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(sourceCanvas, 0, 0);
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imgData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    if (max < 38 && max - min < 18) data[i + 3] = 0;
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return canvas;
+}
+
 async function createAiCutout(productDataUrl, setStatus) {
   setStatus("Lần đầu sẽ tải model AI tách nền, vui lòng chờ...");
   const blob = await removeBackground(productDataUrl, {
@@ -159,7 +192,7 @@ async function createAiCutout(productDataUrl, setStatus) {
   const objectUrl = URL.createObjectURL(blob);
   try {
     const cutout = await loadImage(objectUrl);
-    return trimTransparentImage(cutout);
+    return removeDarkBackdropFromCanvas(trimTransparentImage(cutout));
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
@@ -177,6 +210,8 @@ export default function AIVisualConsultant({ products = [] }) {
   const [visualLoading, setVisualLoading] = useState(false);
   const [visualError, setVisualError] = useState("");
   const [visualStatus, setVisualStatus] = useState("");
+  const [hfMeta, setHfMeta] = useState(null);
+  const [renderMode, setRenderMode] = useState("");
   const [messages, setMessages] = useState([
     { role: "ai", text: "Chào bạn, mình là trợ lý Mạch Nhà. Ảnh ướm thử sẽ dùng AI tách nền miễn phí chạy ngay trên trình duyệt rồi ghép vào không gian thật, không tốn tiền API tạo ảnh." },
   ]);
@@ -210,6 +245,8 @@ export default function AIVisualConsultant({ products = [] }) {
     setVisualLoading(true);
     setVisualError("");
     setVisualStatus("");
+    setHfMeta(null);
+    setRenderMode("");
     try {
       const productDataUrl = await prepareProductImage(selected.image);
       const room = await loadImage(roomImage);
@@ -254,24 +291,61 @@ export default function AIVisualConsultant({ products = [] }) {
       ctx.fill();
       ctx.restore();
 
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.35)";
-      ctx.shadowBlur = Math.max(10, productWidth * 0.045);
-      ctx.shadowOffsetY = Math.max(5, productWidth * 0.025);
-      ctx.drawImage(productLayer, x, y, productWidth, productHeight);
-      ctx.restore();
+      const objectCanvas = document.createElement("canvas");
+      objectCanvas.width = Math.max(1, Math.round(productWidth));
+      objectCanvas.height = Math.max(1, Math.round(productHeight));
+      const objectCtx = objectCanvas.getContext("2d");
+      objectCtx.filter = "saturate(0.96) contrast(0.98)";
+      objectCtx.drawImage(productLayer, 0, 0, objectCanvas.width, objectCanvas.height);
+      objectCtx.globalCompositeOperation = "source-atop";
+      objectCtx.fillStyle = `rgba(${surface.r},${surface.g},${surface.b},0.11)`;
+      objectCtx.fillRect(0, 0, objectCanvas.width, objectCanvas.height);
+      objectCtx.globalCompositeOperation = "source-over";
+      const shine = objectCtx.createLinearGradient(0, 0, objectCanvas.width, objectCanvas.height);
+      shine.addColorStop(0, "rgba(255,255,255,0.08)");
+      shine.addColorStop(0.45, "rgba(255,255,255,0)");
+      shine.addColorStop(1, "rgba(0,0,0,0.08)");
+      objectCtx.fillStyle = shine;
+      objectCtx.fillRect(0, 0, objectCanvas.width, objectCanvas.height);
 
       ctx.save();
-      ctx.globalCompositeOperation = "source-atop";
-      ctx.fillStyle = `rgba(${surface.r},${surface.g},${surface.b},0.08)`;
-      ctx.fillRect(x, y, productWidth, productHeight);
+      ctx.shadowColor = "rgba(0,0,0,0.38)";
+      ctx.shadowBlur = Math.max(12, productWidth * 0.05);
+      ctx.shadowOffsetY = Math.max(5, productWidth * 0.028);
+      ctx.drawImage(objectCanvas, x, y, productWidth, productHeight);
       ctx.restore();
 
       const output = canvas.toDataURL("image/png", 0.96);
       setGeneratedImage(output);
+      setRenderMode("local");
+
+      try {
+        setVisualStatus("Đã có preview local. Đang gửi Hugging Face image-to-image để xóa viền ghép và hòa ánh sáng...");
+        const hf = await requestHuggingFaceTryOn({
+          productName: selected.name,
+          roomType: ROOM_LABELS[roomType],
+          goal: GOAL_LABELS[goal],
+          note,
+          element: selected.element,
+          previewImage: output,
+        });
+        if (hf.image && (hf.mode === "hf-image-to-image" || hf.mode === "fal-image-to-image")) {
+          setGeneratedImage(hf.image);
+          setHfMeta(hf);
+          setRenderMode("hf");
+          setVisualStatus(`Đã render bằng ${hf.provider || "AI"} (${hf.mode || "image"}): ${hf.model}`);
+        } else if (hf.image) {
+          setRenderMode("local");
+          setVisualStatus("Hugging Face trả ảnh mới nhưng không phải image-to-image nên đã bỏ qua để tránh bịa phòng/sản phẩm. Ảnh hiện tại là preview local.");
+        }
+      } catch (hfError) {
+        setRenderMode("local");
+        setVisualStatus(`Hugging Face chưa render được, ảnh hiện tại chỉ là preview local. Lý do: ${hfError.message || "không rõ lỗi"}`);
+      }
+
       setMessages((prev) => [
         ...prev,
-        { role: "ai", text: `Đã tạo ảnh ướm thử miễn phí cho ${selected.name}. Đây là ảnh ghép theo vị trí/kích thước bạn chọn, không phát sinh chi phí API.` },
+        { role: "ai", text: `Đã tạo ảnh ướm thử cho ${selected.name}. App ưu tiên render qua Hugging Face; nếu HF_TOKEN/model chưa sẵn sàng thì tự giữ preview local.` },
       ]);
     } catch (error) {
       setVisualError(error.message || "Chưa tạo được ảnh ướm thử. Hãy thử đổi ảnh sản phẩm hoặc ảnh phòng.");
@@ -313,7 +387,7 @@ export default function AIVisualConsultant({ products = [] }) {
         </div>
         <div className="ai-status">
           <Sparkles size={16}/>
-          <span>AI tách nền miễn phí</span>
+          <span>Hugging Face AI cloud</span>
         </div>
       </div>
 
@@ -364,11 +438,21 @@ export default function AIVisualConsultant({ products = [] }) {
             {visualLoading ? <Loader2 size={15} className="spin"/> : <Sparkles size={15}/>}
             {visualLoading ? "Đang tách nền & tạo ảnh..." : "Tạo Ảnh AI Miễn Phí"}
           </button>
-          {visualStatus && <p style={{ marginTop:8, color:"var(--text-light)", fontSize:"0.74rem", lineHeight:1.55 }}>{visualStatus}</p>}
+          {visualStatus && <p style={{ marginTop:8, color:renderMode === "local" ? "#ffb86b" : "var(--text-light)", fontSize:"0.74rem", lineHeight:1.55 }}>{visualStatus}</p>}
+          {hfMeta?.model && (
+            <p style={{ marginTop:6, color:"var(--gold)", fontSize:"0.74rem", lineHeight:1.55 }}>
+              Hugging Face model: <strong>{hfMeta.model}</strong>
+            </p>
+          )}
+          {generatedImage && renderMode === "local" && (
+            <p style={{ marginTop:6, color:"#ff8b7d", fontSize:"0.74rem", lineHeight:1.55 }}>
+              Ảnh đang xem chưa phải ảnh Hugging Face render. Đây chỉ là preview ghép nhanh.
+            </p>
+          )}
           {generatedImage && (
             <>
-              <a href={generatedImage} download={`uom-thu-${selected?.id || "san-pham"}.png`} className="btn-outline" style={{ width:"100%", justifyContent:"center", marginTop:8 }}>
-                <Download size={15}/> Tải ảnh vừa tạo
+              <a href={generatedImage} download={`${renderMode === "hf" ? "hf-render" : "preview-local"}-${selected?.id || "san-pham"}.png`} className="btn-outline" style={{ width:"100%", justifyContent:"center", marginTop:8 }}>
+                <Download size={15}/> {renderMode === "hf" ? "Tải ảnh Hugging Face" : "Tải preview local"}
               </a>
               <button onClick={()=>setGeneratedImage("")} className="btn-outline" style={{ width:"100%", justifyContent:"center", marginTop:8 }}>
                 Chỉnh vị trí và tạo lại
@@ -428,7 +512,7 @@ export default function AIVisualConsultant({ products = [] }) {
 
           <div className="ai-advice">
             <CheckCircle size={17}/>
-            <p>Ảnh ướm thử dùng AI tách nền local rồi ghép bằng canvas nên miễn phí và không cần billing. Lần đầu có thể chậm vì trình duyệt phải tải model tách nền.</p>
+            <p>Ảnh ướm thử tạo preview nhanh bằng AI tách nền trong trình duyệt, sau đó gửi Hugging Face để render đẹp hơn nếu đã cấu hình token.</p>
           </div>
         </section>
       </div>

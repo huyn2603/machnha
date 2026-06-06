@@ -62,6 +62,14 @@ export const createAnalysisPayment = (data) => req("/analysisPayments", {
   }),
 });
 export const getAnalysisPayment = (id) => req(`/analysisPayments/${id}`);
+export const getAnalysisPayments = () => req("/analysisPayments");
+export const confirmAnalysisPayment = (id, adminId) => req(`/analysis-payments/${id}/confirm`, {
+  method: "PATCH",
+  body: JSON.stringify({ adminId }),
+});
+export const cancelAnalysisPayment = (id) => req(`/analysis-payments/${id}/cancel`, {
+  method: "PATCH",
+});
 
 /* Real AI endpoints */
 export const requestAIConsultation = (data) => req("/ai/consult", {
@@ -69,9 +77,14 @@ export const requestAIConsultation = (data) => req("/ai/consult", {
   body: JSON.stringify(data),
 });
 export const getImageDataUrl = (url) => req(`/image-data-url?url=${encodeURIComponent(url)}`);
+export const requestHuggingFaceTryOn = (data) => req("/ai/try-on-hf", {
+  method: "POST",
+  body: JSON.stringify(data),
+});
 
 /* Users */
 export const getUsers       = ()             => req("/users");
+export const getUserById    = (id)           => req(`/users/${id}`);
 export const getUserByEmail = async (email)  => { const r = await req(`/users?email=${encodeURIComponent(email)}`); return r[0]||null; };
 export const loginUser      = async (e,p)    => { const r = await req(`/users?email=${encodeURIComponent(e)}&password=${encodeURIComponent(p)}`); return r[0]||null; };
 export const registerUser   = (d)            => req("/users", { method:"POST", body:JSON.stringify({ ...d, id:Date.now(), createdAt:new Date().toISOString() }) });

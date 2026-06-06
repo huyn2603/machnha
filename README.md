@@ -6,6 +6,28 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
+## Environment Variables
+
+The real `.env.local` file is intentionally ignored by git because it contains private API tokens.
+
+To set up a new clone, copy the template and fill in your own keys:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+Required for Hugging Face image try-on:
+
+```env
+HF_TOKEN=your_hugging_face_token
+```
+
+Optional for Gemini text consultation:
+
+```env
+GEMINI_API_KEY=your_gemini_key
+```
+
 ### `npm start`
 
 Runs the app in the development mode.\

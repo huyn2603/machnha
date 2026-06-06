@@ -49,11 +49,16 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => { setUser(null); setError(null); };
+  const syncUser = (nextUser) => {
+    if (!nextUser) return;
+    const { password: _, ...safe } = nextUser;
+    setUser(safe);
+  };
 
   return (
     <Ctx.Provider value={{
       user, loading, error,
-      login, register, logout,
+      login, register, logout, syncUser,
       isLoggedIn: !!user,
       isAdmin: user?.role === "admin",
     }}>

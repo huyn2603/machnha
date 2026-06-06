@@ -466,3 +466,409 @@ a:visited { text-decoration: none !important; }
     grid-template-columns: 1fr;
   }
 }
+
+/* Admin */
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  background: #100e0a;
+}
+.admin-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 22px 16px;
+  background: linear-gradient(180deg, #2b2419, #17130d);
+  border-right: 1px solid rgba(212,175,90,0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.admin-brand strong {
+  display: block;
+  color: var(--gold-light);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.55rem;
+  letter-spacing: 1px;
+}
+.admin-brand span,
+.admin-profile span,
+.admin-back,
+.admin-table small,
+.admin-order small,
+.admin-payment small {
+  color: var(--text-light);
+  font-size: 0.78rem;
+}
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px;
+  border: 1px solid rgba(212,175,90,0.16);
+  background: rgba(255,255,255,0.035);
+  border-radius: 8px;
+}
+.admin-profile > div,
+.admin-user-cell i {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  background: var(--gold);
+  font-style: normal;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.admin-profile b,
+.admin-profile span {
+  display: block;
+}
+.admin-sidebar nav {
+  display: grid;
+  gap: 6px;
+}
+.admin-sidebar nav button,
+.admin-back {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--cream2);
+  border-radius: 7px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.admin-sidebar nav button.active {
+  border-color: rgba(212,175,90,0.35);
+  background: rgba(212,175,90,0.12);
+  color: var(--gold-light);
+}
+.admin-sidebar nav em {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: white;
+  font-style: normal;
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-back {
+  margin-top: auto;
+}
+.admin-main {
+  padding: 30px;
+  overflow: auto;
+}
+.admin-header h1,
+.admin-panel h1 {
+  color: var(--white);
+  font-size: 2.05rem;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.admin-header p,
+.admin-section-title p {
+  color: var(--text-light);
+}
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.admin-stat,
+.admin-panel,
+.admin-order,
+.admin-payment {
+  background: rgba(39,33,24,0.92);
+  border: 1px solid rgba(212,175,90,0.18);
+  border-radius: 8px;
+}
+.admin-stat {
+  padding: 18px;
+  display: grid;
+  gap: 5px;
+}
+.admin-stat strong {
+  font-size: 1.55rem;
+  line-height: 1;
+}
+.admin-stat span {
+  color: var(--cream);
+  font-weight: 700;
+}
+.admin-stat small {
+  color: var(--text-light);
+}
+.admin-panel {
+  padding: 22px;
+  margin-bottom: 22px;
+}
+.admin-panel h2 {
+  color: var(--gold-light);
+  font-size: 1.35rem;
+  margin-bottom: 14px;
+}
+.admin-section-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.admin-table {
+  display: grid;
+  gap: 1px;
+  overflow-x: auto;
+}
+.admin-table .head,
+.admin-table .row {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  min-width: 760px;
+  padding: 12px 14px;
+}
+.product-table .head,
+.product-table .row {
+  grid-template-columns: 62px minmax(220px,1fr) 130px 70px 90px 86px;
+}
+.user-table .head,
+.user-table .row {
+  grid-template-columns: minmax(210px,1.2fr) minmax(190px,1fr) 100px 70px 120px 70px;
+}
+.admin-table .head {
+  color: var(--gold-light);
+  background: rgba(212,175,90,0.08);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.admin-table .row {
+  background: rgba(16,14,10,0.52);
+  color: var(--cream2);
+}
+.admin-table img {
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.admin-table b,
+.admin-table small {
+  display: block;
+}
+.admin-row-actions {
+  display: flex;
+  gap: 8px;
+}
+.admin-row-actions button,
+.admin-icon-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(212,175,90,0.25);
+  background: rgba(212,175,90,0.08);
+  color: var(--gold);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.admin-pill,
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 25px;
+  padding: 3px 9px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+.role-badge.admin {
+  color: #f5d97a;
+  border-color: rgba(245,217,122,0.45);
+  background: rgba(245,217,122,0.13);
+}
+.role-badge.user {
+  color: #93c5fd;
+  border-color: rgba(147,197,253,0.45);
+  background: rgba(147,197,253,0.13);
+}
+.admin-user-cell {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  column-gap: 10px;
+  align-items: center;
+}
+.admin-user-cell small {
+  grid-column: 2;
+}
+.admin-order,
+.admin-payment {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+.admin-order b,
+.admin-payment b {
+  color: var(--gold-light);
+}
+.admin-order span,
+.admin-payment p,
+.admin-payment span {
+  display: block;
+  color: var(--cream2);
+  font-size: 0.9rem;
+}
+.admin-order section,
+.admin-payment section {
+  text-align: right;
+  min-width: 170px;
+}
+.admin-order strong,
+.admin-payment strong {
+  display: block;
+  color: var(--gold);
+  font-size: 1.05rem;
+}
+.admin-order select {
+  margin-top: 7px;
+  background: var(--dark);
+  color: var(--cream);
+  border: 1px solid rgba(212,175,90,0.25);
+  border-radius: 5px;
+  padding: 7px 8px;
+}
+.admin-payment-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+.admin-confirm,
+.admin-cancel,
+.admin-toggle {
+  margin-top: 8px;
+  border: 1px solid;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-weight: 800;
+  cursor: pointer;
+}
+.admin-confirm {
+  color: #102014;
+  background: #22c55e;
+  border-color: #22c55e;
+  margin-right: 7px;
+}
+.admin-cancel,
+.admin-toggle {
+  color: #fecaca;
+  background: rgba(239,68,68,0.1);
+  border-color: rgba(239,68,68,0.36);
+}
+.admin-empty {
+  padding: 30px;
+  color: var(--text-light);
+  text-align: center;
+}
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(0,0,0,0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.admin-modal-box {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+  padding: 26px;
+  background: var(--dark2);
+  border: 1px solid rgba(212,175,90,0.3);
+  border-radius: 10px;
+}
+.admin-modal-box h2 {
+  color: var(--gold-light);
+  margin-bottom: 18px;
+}
+.admin-icon-btn.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+.admin-form-grid label {
+  display: grid;
+  gap: 7px;
+  color: var(--gold-light);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.admin-form-grid .full {
+  grid-column: 1 / -1;
+}
+.admin-form-grid input,
+.admin-form-grid select,
+.admin-form-grid textarea {
+  width: 100%;
+  background: var(--dark);
+  color: var(--cream);
+  border: 1.5px solid rgba(90,78,58,0.85);
+  border-radius: 5px;
+  padding: 11px 12px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+.admin-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+@media (max-width: 920px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    position: relative;
+    height: auto;
+  }
+  .admin-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin-order,
+  .admin-payment,
+  .admin-section-title {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-order section,
+  .admin-payment section {
+    text-align: left;
+  }
+}

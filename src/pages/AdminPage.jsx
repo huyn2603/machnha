@@ -1,102 +1,115 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  Check, ChevronLeft, Coins, LayoutDashboard, Package, Pencil, Plus,
+  ShieldCheck, ShoppingBag, Trash2, TrendingUp, Users, X,
+} from "lucide-react";
 import { useFetch } from "../hooks/useFetch";
-import { getProducts, getOrders, getUsers, updateOrderStatus, createProduct, updateProduct, deleteProduct } from "../services/api";
+import {
+  cancelAnalysisPayment,
+  confirmAnalysisPayment,
+  createProduct,
+  deleteProduct,
+  getAnalysisPayments,
+  getOrders,
+  getProducts,
+  getUsers,
+  updateOrderStatus,
+  updateProduct,
+} from "../services/api";
 import { Spinner } from "../components/UIStates";
 import { useAuth } from "../context/AuthContext";
-import { LayoutDashboard, Package, ShoppingBag, Users, TrendingUp, Plus, Pencil, Trash2, X, Check, ChevronLeft } from "lucide-react";
 
-const BASE  = "http://localhost:3001";
-const fmt   = n => n?.toLocaleString("vi-VN") + "₫";
-const apiFn = (path, method="GET", body=null) =>
-  fetch(`${BASE}${path}`, { method, headers:{"Content-Type":"application/json"}, body: body?JSON.stringify(body):undefined }).then(r=>r.json());
+const fmt = (n = 0) => `${Number(n || 0).toLocaleString("vi-VN")}đ`;
+const CATS = ["da-quy", "tuong-phat", "vong-tay", "tranh-phong-thuy", "la-kinh", "cay-phong-thuy", "huong-thom"];
+const ELEMS = ["Kim", "Mộc", "Thủy", "Hỏa", "Thổ"];
+const EMPTY_PROD = { name: "", category: "da-quy", price: "", originalPrice: "", element: "Kim", stock: "", badge: "", badgeColor: "#c0392b", image: "", description: "", features: "", destiny: "" };
 
 const TABS = [
-  { id:"dash",     label:"Tổng Quan",   icon:<LayoutDashboard size={15}/> },
-  { id:"products", label:"Sản Phẩm",    icon:<Package size={15}/> },
-  { id:"orders",   label:"Đơn Hàng",    icon:<ShoppingBag size={15}/> },
-  { id:"users",    label:"Người Dùng",  icon:<Users size={15}/> },
+  { id: "dash", label: "Tổng quan", icon: LayoutDashboard },
+  { id: "products", label: "Sản phẩm", icon: Package },
+  { id: "orders", label: "Đơn hàng", icon: ShoppingBag },
+  { id: "payments", label: "Thanh toán lượt", icon: Coins },
+  { id: "users", label: "Người dùng", icon: Users },
 ];
 
-const CATS = ["da-quy","tuong-phat","vong-tay","tranh-phong-thuy","la-kinh","cay-phong-thuy","huong-thom"];
-const ELEMS = ["Kim","Mộc","Thủy","Hỏa","Thổ"];
-const EMPTY_PROD = { name:"", category:"da-quy", price:"", originalPrice:"", element:"Kim", stock:"", badge:"", badgeColor:"#c0392b", image:"", description:"", features:"", destiny:"" };
-
-function Stat({ icon, label, value, sub, color }) {
+function Card({ icon: Icon, label, value, sub, tone = "#D4AF5A" }) {
   return (
-    <div style={{ background:"var(--dark2)", border:`1px solid ${color}30`, padding:22, position:"relative", overflow:"hidden" }}>
-      <div style={{ position:"absolute", right:-10, top:-10, width:72, height:72, borderRadius:"50%", background:`${color}10` }}/>
-      <div style={{ color, marginBottom:10 }}>{icon}</div>
-      <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.9rem", fontWeight:600, color }}>{value}</div>
-      <div style={{ fontWeight:700, fontSize:"0.8rem", letterSpacing:1, color:"var(--cream)", marginBottom:2 }}>{label}</div>
-      {sub && <div style={{ fontSize:"0.72rem", color:"var(--text-light)" }}>{sub}</div>}
+    <div className="admin-stat" style={{ borderColor: `${tone}45` }}>
+      <Icon size={23} color={tone}/>
+      <strong style={{ color: tone }}>{value}</strong>
+      <span>{label}</span>
+      {sub && <small>{sub}</small>}
     </div>
   );
 }
 
-function ProdModal({ prod, onClose, onSave }) {
-  const [f, setF] = useState(prod ? { ...prod, features: prod.features?.join("\n")||"", destiny: prod.destiny?.join(", ")||"" } : EMPTY_PROD);
-  const s = (k,v) => setF(p=>({...p,[k]:v}));
+function StatusPill({ status }) {
+  const map = {
+    pending: ["Chờ xử lý", "#f59e0b"],
+    confirmed: ["Đã xác nhận", "#38bdf8"],
+    shipping: ["Đang giao", "#818cf8"],
+    completed: ["Hoàn thành", "#22c55e"],
+    cancelled: ["Đã hủy", "#ef4444"],
+    paid: ["Đã thanh toán", "#22c55e"],
+  };
+  const [text, color] = map[status] || [status || "Không rõ", "#94a3b8"];
+  return <span className="admin-pill" style={{ color, borderColor: `${color}55`, background: `${color}16` }}>{text}</span>;
+}
+
+function ProductModal({ product, onClose, onSave }) {
+  const [form, setForm] = useState(product ? {
+    ...product,
+    features: product.features?.join("\n") || "",
+    destiny: product.destiny?.join(", ") || "",
+  } : EMPTY_PROD);
+  const set = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const save = async () => {
     const body = {
-      ...f,
-      price: Number(f.price), originalPrice: Number(f.originalPrice), stock: Number(f.stock),
-      features: typeof f.features==="string" ? f.features.split("\n").filter(Boolean) : f.features,
-      destiny:  typeof f.destiny ==="string" ? f.destiny.split(",").map(x=>x.trim()).filter(Boolean) : f.destiny,
-      badge: f.badge || null, badgeColor: f.badge ? f.badgeColor : null,
+      ...form,
+      price: Number(form.price || 0),
+      originalPrice: Number(form.originalPrice || 0),
+      stock: Number(form.stock || 0),
+      features: String(form.features || "").split("\n").map((x) => x.trim()).filter(Boolean),
+      destiny: String(form.destiny || "").split(",").map((x) => x.trim()).filter(Boolean),
+      badge: form.badge || null,
+      badgeColor: form.badge ? form.badgeColor : null,
     };
-    if (prod) await updateProduct(prod.id, { ...body, id:prod.id });
-    else      await createProduct(body);
+    if (product) await updateProduct(product.id, { ...body, id: product.id });
+    else await createProduct(body);
     onSave();
   };
 
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:9000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
-      <div style={{ background:"var(--dark2)", border:"1px solid rgba(201,168,76,0.3)", padding:28, maxWidth:660, width:"100%", maxHeight:"90vh", overflowY:"auto" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-          <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.4rem", color:"var(--gold)" }}>{prod?"Sửa Sản Phẩm":"Thêm Sản Phẩm Mới"}</h2>
-          <button onClick={onClose} style={{ background:"none", border:"none", color:"var(--text-light)", cursor:"pointer" }}><X size={19}/></button>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-          {[{ k:"name",label:"Tên sản phẩm",full:true },{ k:"price",label:"Giá bán (₫)",type:"number" },{ k:"originalPrice",label:"Giá gốc (₫)",type:"number" },{ k:"stock",label:"Tồn kho",type:"number" },{ k:"image",label:"URL ảnh",full:true },{ k:"badge",label:"Nhãn (badge)" },{ k:"badgeColor",label:"Màu nhãn",type:"color" }].map(fd => (
-            <div key={fd.k} className="form-group" style={{ gridColumn:fd.full?"1/-1":"auto" }}>
-              <label>{fd.label}</label>
-              <input type={fd.type||"text"} value={f[fd.k]||""} onChange={e=>s(fd.k,e.target.value)}/>
-            </div>
+    <div className="admin-modal">
+      <div className="admin-modal-box">
+        <button className="admin-icon-btn close" onClick={onClose}><X size={17}/></button>
+        <h2>{product ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</h2>
+        <div className="admin-form-grid">
+          {[
+            ["name", "Tên sản phẩm", "text", true],
+            ["price", "Giá bán", "number"],
+            ["originalPrice", "Giá gốc", "number"],
+            ["stock", "Tồn kho", "number"],
+            ["image", "URL ảnh", "text", true],
+            ["badge", "Nhãn", "text"],
+            ["badgeColor", "Màu nhãn", "color"],
+          ].map(([key, label, type, full]) => (
+            <label key={key} className={full ? "full" : ""}>
+              {label}
+              <input type={type} value={form[key] || ""} onChange={(e) => set(key, e.target.value)}/>
+            </label>
           ))}
-          <div className="form-group">
-            <label>Danh mục</label>
-            <select value={f.category} onChange={e=>s("category",e.target.value)}>
-              {CATS.map(c=><option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Ngũ Hành</label>
-            <select value={f.element} onChange={e=>s("element",e.target.value)}>
-              {ELEMS.map(e=><option key={e} value={e}>{e}</option>)}
-            </select>
-          </div>
-          <div className="form-group" style={{ gridColumn:"1/-1" }}>
-            <label>Mệnh phù hợp (phân cách bằng dấu phẩy)</label>
-            <input value={f.destiny} onChange={e=>s("destiny",e.target.value)} placeholder="Kim, Thủy, Mọi mệnh"/>
-          </div>
-          <div className="form-group" style={{ gridColumn:"1/-1" }}>
-            <label>Đặc điểm (mỗi dòng 1 mục)</label>
-            <textarea rows={3} value={f.features} onChange={e=>s("features",e.target.value)}
-              style={{ resize:"vertical", background:"var(--dark)", border:"1px solid var(--medium)", color:"var(--cream)", padding:"9px 12px", fontFamily:"Raleway,sans-serif", outline:"none" }}/>
-          </div>
-          <div className="form-group" style={{ gridColumn:"1/-1" }}>
-            <label>Mô tả</label>
-            <textarea rows={3} value={f.description} onChange={e=>s("description",e.target.value)}
-              style={{ resize:"vertical", background:"var(--dark)", border:"1px solid var(--medium)", color:"var(--cream)", padding:"9px 12px", fontFamily:"Raleway,sans-serif", outline:"none" }}/>
-          </div>
+          <label>Danh mục<select value={form.category} onChange={(e) => set("category", e.target.value)}>{CATS.map((c) => <option key={c}>{c}</option>)}</select></label>
+          <label>Ngũ hành<select value={form.element} onChange={(e) => set("element", e.target.value)}>{ELEMS.map((e) => <option key={e}>{e}</option>)}</select></label>
+          <label className="full">Mệnh phù hợp<input value={form.destiny || ""} onChange={(e) => set("destiny", e.target.value)} placeholder="Kim, Thủy, Mọi mệnh"/></label>
+          <label className="full">Đặc điểm<textarea rows={3} value={form.features || ""} onChange={(e) => set("features", e.target.value)}/></label>
+          <label className="full">Mô tả<textarea rows={3} value={form.description || ""} onChange={(e) => set("description", e.target.value)}/></label>
         </div>
-        <div style={{ display:"flex", gap:10, marginTop:18 }}>
-          <button onClick={save} className="btn-gold" style={{ flex:1, padding:11, display:"flex", alignItems:"center", justifyContent:"center", gap:7 }}>
-            <Check size={15}/> Lưu Sản Phẩm
-          </button>
-          <button onClick={onClose} className="btn-outline" style={{ padding:"11px 18px" }}>Hủy</button>
+        <div className="admin-actions">
+          <button className="btn-gold" onClick={save}><Check size={15}/> Lưu</button>
+          <button className="btn-outline" onClick={onClose}>Hủy</button>
         </div>
       </div>
     </div>
@@ -106,209 +119,195 @@ function ProdModal({ prod, onClose, onSave }) {
 export default function AdminPage() {
   const { user } = useAuth();
   const [tab, setTab] = useState("dash");
-  const [modal, setModal] = useState(null); // null | "new" | product object
+  const [modal, setModal] = useState(null);
+  const { data: products = [], loading: pLoad, refetch: refetchProducts } = useFetch(getProducts, []);
+  const { data: orders = [], loading: oLoad, refetch: refetchOrders } = useFetch(getOrders, []);
+  const { data: users = [], refetch: refetchUsers } = useFetch(getUsers, []);
+  const { data: payments = [], refetch: refetchPayments } = useFetch(getAnalysisPayments, []);
 
-  const { data: products = [], loading: pLoad, refetch: rP } = useFetch(getProducts, []);
-  const { data: orders   = [], loading: oLoad, refetch: rO } = useFetch(getOrders,   []);
-  const { data: users    = []                               } = useFetch(getUsers,    []);
+  const stats = useMemo(() => {
+    const revenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const paidSlots = payments.filter((p) => p.status === "paid").reduce((sum, p) => sum + Number(p.slots || 0), 0);
+    return { revenue, paidSlots, pendingPayments: payments.filter((p) => p.status === "pending").length };
+  }, [orders, payments]);
 
-  const totalRev = orders.reduce((s,o) => s + (o.total||0), 0);
-
-  const handleDeleteProd = async (id) => {
-    if (!window.confirm("Xóa sản phẩm này?")) return;
-    await deleteProduct(id); rP();
+  const toggleUser = async (target) => {
+    await fetch(`http://localhost:3001/users/${target.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active: !target.active }),
+    });
+    refetchUsers();
   };
 
-  const handleStatusChange = async (id, status) => { await updateOrderStatus(id, status); rO(); };
+  const confirmPayment = async (payment) => {
+    await confirmAnalysisPayment(payment.id, user?.id);
+    refetchPayments();
+    refetchUsers();
+  };
 
-  const toggleUser = async (u) => {
-    await apiFn(`/users/${u.id}`, "PATCH", { active: !u.active });
-    window.location.reload(); // simple refresh
+  const cancelPayment = async (payment) => {
+    await cancelAnalysisPayment(payment.id);
+    refetchPayments();
+  };
+
+  const removeProduct = async (id) => {
+    if (!window.confirm("Xóa sản phẩm này?")) return;
+    await deleteProduct(id);
+    refetchProducts();
   };
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", background:"var(--black)" }}>
-      {/* Sidebar */}
-      <div style={{ width:215, flexShrink:0, background:"var(--dark2)", borderRight:"1px solid rgba(201,168,76,0.15)", display:"flex", flexDirection:"column" }}>
-        <div style={{ padding:"22px 18px 20px", borderBottom:"1px solid rgba(201,168,76,0.1)" }}>
-          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.05rem", fontWeight:600, background:"linear-gradient(135deg,var(--gold-dark),var(--gold))", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:2, marginBottom:14 }}>☯ Mạch Nhà</div>
-          <div style={{ fontSize:"0.62rem", color:"var(--gold)", letterSpacing:2, marginBottom:12 }}>ADMIN PANEL</div>
-          <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-            <div style={{ width:30, height:30, borderRadius:"50%", background:"var(--gold)", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, color:"var(--black)", fontSize:"0.85rem" }}>{user?.avatar}</div>
-            <div>
-              <div style={{ fontSize:"0.8rem", fontWeight:600 }}>{user?.name}</div>
-              <div style={{ fontSize:"0.65rem", color:"var(--gold)" }}>Quản trị viên</div>
-            </div>
-          </div>
+    <div className="admin-shell">
+      <aside className="admin-sidebar">
+        <div className="admin-brand">
+          <strong>Mạch Nhà</strong>
+          <span>Admin Panel</span>
         </div>
-
-        <div style={{ flex:1, paddingTop:14 }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={()=>setTab(t.id)} style={{ width:"100%", padding:"11px 18px", display:"flex", alignItems:"center", gap:10, background: tab===t.id?"rgba(201,168,76,0.12)":"none", border:"none", borderLeft:`3px solid ${tab===t.id?"var(--gold)":"transparent"}`, color: tab===t.id?"var(--gold)":"var(--text-light)", cursor:"pointer", fontFamily:"Raleway,sans-serif", fontSize:"0.82rem", fontWeight: tab===t.id?700:400, transition:"all 0.2s" }}>
-              {t.icon} {t.label}
+        <div className="admin-profile">
+          <div>{user?.avatar || "A"}</div>
+          <section><b>{user?.name}</b><span>Quản trị viên</span></section>
+        </div>
+        <nav>
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setTab(id)} className={tab === id ? "active" : ""}>
+              <Icon size={17}/>{label}
+              {id === "payments" && stats.pendingPayments > 0 && <em>{stats.pendingPayments}</em>}
             </button>
           ))}
-        </div>
+        </nav>
+        <Link to="/" className="admin-back"><ChevronLeft size={15}/> Về trang chủ</Link>
+      </aside>
 
-        <div style={{ padding:"18px" }}>
-          <Link to="/" style={{ display:"flex", alignItems:"center", gap:7, color:"var(--text-light)", fontSize:"0.78rem" }}>
-            <ChevronLeft size={13}/> Về Trang Chủ
-          </Link>
-        </div>
-      </div>
-
-      {/* Main */}
-      <div style={{ flex:1, padding:"28px", overflowY:"auto" }}>
-
-        {/* ── Dashboard ── */}
+      <main className="admin-main">
         {tab === "dash" && (
-          <div>
-            <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.9rem", letterSpacing:4, marginBottom:6 }}>Tổng Quan</h1>
-            <p style={{ color:"var(--text-light)", marginBottom:28 }}>Chào mừng trở lại, {user?.name}!</p>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))", gap:18, marginBottom:36 }}>
-              <Stat icon={<Package size={26}/>}      label="Sản Phẩm"   value={products.length} sub="Đang kinh doanh"    color="var(--gold)"/>
-              <Stat icon={<ShoppingBag size={26}/>}  label="Đơn Hàng"  value={orders.length}   sub={`${orders.filter(o=>o.status==="pending").length} chờ xử lý`} color="#2980b9"/>
-              <Stat icon={<Users size={26}/>}        label="Người Dùng" value={users.filter(u=>u.role==="user").length} sub="Đã đăng ký" color="#27ae60"/>
-              <Stat icon={<TrendingUp size={26}/>}   label="Doanh Thu"  value={totalRev>0?`${(totalRev/1000000).toFixed(1)}M₫`:"0₫"} sub="Tổng đơn hàng" color="#e67e22"/>
+          <>
+            <header className="admin-header"><h1>Tổng quan</h1><p>Xin chào {user?.name}, đây là tình hình vận hành hiện tại.</p></header>
+            <div className="admin-stats">
+              <Card icon={Package} label="Sản phẩm" value={products.length} sub="Đang kinh doanh"/>
+              <Card icon={ShoppingBag} label="Đơn hàng" value={orders.length} sub={`${orders.filter((o) => o.status === "pending").length} đơn chờ xử lý`} tone="#38bdf8"/>
+              <Card icon={Users} label="Người dùng" value={users.filter((u) => u.role === "user").length} sub="Tài khoản khách hàng" tone="#22c55e"/>
+              <Card icon={TrendingUp} label="Doanh thu" value={fmt(stats.revenue)} sub={`${stats.paidSlots} lượt đã kích hoạt`} tone="#f59e0b"/>
             </div>
-
-            <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.35rem", letterSpacing:2, color:"var(--gold)", marginBottom:14 }}>Đơn Hàng Gần Đây</h2>
-            <div style={{ background:"var(--dark2)", border:"1px solid rgba(201,168,76,0.15)" }}>
-              {orders.length === 0 ? (
-                <div style={{ padding:40, textAlign:"center", color:"var(--text-light)" }}>Chưa có đơn hàng nào</div>
-              ) : orders.slice(-5).reverse().map(o => (
-                <div key={o.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
-                  <div>
-                    <div style={{ fontWeight:600, fontSize:"0.87rem" }}>{o.orderId}</div>
-                    <div style={{ fontSize:"0.74rem", color:"var(--text-light)" }}>{o.customer?.name} · {new Date(o.createdAt).toLocaleDateString("vi-VN")}</div>
-                  </div>
-                  <div style={{ textAlign:"right" }}>
-                    <div style={{ color:"var(--gold)", fontWeight:700 }}>{fmt(o.total)}</div>
-                    <span style={{ fontSize:"0.68rem", padding:"2px 7px", background: o.status==="pending"?"rgba(231,76,60,0.15)":"rgba(39,174,96,0.15)", color: o.status==="pending"?"#e74c3c":"#27ae60", borderRadius:2 }}>
-                      {o.status==="pending"?"Chờ xử lý":"Hoàn thành"}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+            <section className="admin-panel">
+              <h2>Thanh toán lượt đang chờ</h2>
+              <PaymentList payments={payments.filter((p) => p.status === "pending").slice(0, 5)} onConfirm={confirmPayment} onCancel={cancelPayment}/>
+            </section>
+          </>
         )}
 
-        {/* ── Products ── */}
         {tab === "products" && (
-          <div>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:22 }}>
-              <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.9rem", letterSpacing:4 }}>Sản Phẩm</h1>
-              <button onClick={()=>setModal("new")} className="btn-gold" style={{ display:"flex", alignItems:"center", gap:7, padding:"10px 18px" }}>
-                <Plus size={15}/> Thêm Mới
-              </button>
-            </div>
-            {pLoad ? <Spinner/> : (
-              <div style={{ background:"var(--dark2)", border:"1px solid rgba(201,168,76,0.15)" }}>
-                <div style={{ display:"grid", gridTemplateColumns:"56px 1fr 100px 75px 75px 80px", gap:0, padding:"10px 18px", fontSize:"0.65rem", letterSpacing:2, textTransform:"uppercase", color:"var(--text-light)", borderBottom:"1px solid rgba(201,168,76,0.1)" }}>
-                  <span/><span>Tên</span><span>Giá</span><span>Kho</span><span>Mệnh</span><span>Thao Tác</span>
-                </div>
-                {products.map(p => (
-                  <div key={p.id} style={{ display:"grid", gridTemplateColumns:"56px 1fr 100px 75px 75px 80px", gap:0, padding:"12px 18px", borderBottom:"1px solid rgba(255,255,255,0.04)", alignItems:"center" }}>
-                    <img src={p.image} alt="" style={{ width:46, height:46, objectFit:"cover", border:"1px solid rgba(201,168,76,0.15)" }}/>
-                    <div>
-                      <div style={{ fontWeight:600, fontSize:"0.85rem" }}>{p.name}</div>
-                      <div style={{ fontSize:"0.68rem", color:"var(--text-light)" }}>{p.category}</div>
-                    </div>
-                    <div style={{ color:"var(--gold)", fontWeight:700, fontSize:"0.85rem" }}>{(p.price/1000).toFixed(0)}K</div>
-                    <div style={{ fontSize:"0.82rem", color: p.stock<10?"#e74c3c":"var(--cream2)" }}>{p.stock}</div>
-                    <div style={{ fontSize:"0.78rem", color:"var(--text-light)" }}>{p.element}</div>
-                    <div style={{ display:"flex", gap:9 }}>
-                      <button onClick={()=>setModal(p)} style={{ background:"none", border:"none", color:"var(--gold)", cursor:"pointer" }}><Pencil size={14}/></button>
-                      <button onClick={()=>handleDeleteProd(p.id)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer" }}><Trash2 size={14}/></button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {modal && <ProdModal prod={modal==="new"?null:modal} onClose={()=>setModal(null)} onSave={()=>{ setModal(null); rP(); }}/>}
-          </div>
+          <section className="admin-panel">
+            <div className="admin-section-title"><h1>Sản phẩm</h1><button className="btn-gold" onClick={() => setModal("new")}><Plus size={15}/> Thêm mới</button></div>
+            {pLoad ? <Spinner/> : <ProductTable products={products} onEdit={setModal} onDelete={removeProduct}/>}
+          </section>
         )}
 
-        {/* ── Orders ── */}
         {tab === "orders" && (
-          <div>
-            <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.9rem", letterSpacing:4, marginBottom:22 }}>Đơn Hàng</h1>
-            {oLoad ? <Spinner/> : orders.length === 0 ? (
-              <div style={{ textAlign:"center", padding:56, color:"var(--text-light)" }}>Chưa có đơn hàng</div>
-            ) : (
-              <div style={{ background:"var(--dark2)", border:"1px solid rgba(201,168,76,0.15)" }}>
-                {orders.slice().reverse().map(o => (
-                  <div key={o.id} style={{ padding:18, borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
-                      <div>
-                        <div style={{ fontWeight:700, color:"var(--gold)", fontSize:"0.87rem" }}>#{o.orderId}</div>
-                        <div style={{ fontSize:"0.8rem", color:"var(--cream2)", marginTop:3 }}>{o.customer?.name} · {o.customer?.phone} · {o.customer?.city}</div>
-                        <div style={{ fontSize:"0.72rem", color:"var(--text-light)" }}>{new Date(o.createdAt).toLocaleString("vi-VN")}</div>
-                      </div>
-                      <div style={{ textAlign:"right" }}>
-                        <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.2rem", color:"var(--gold)", fontWeight:600 }}>{fmt(o.total)}</div>
-                        <div style={{ fontSize:"0.72rem", color:"var(--text-light)", marginBottom:6 }}>{o.paymentMethod?.toUpperCase()}</div>
-                        <select value={o.status} onChange={e=>handleStatusChange(o.id, e.target.value)}
-                          style={{ background:"var(--dark)", border:"1px solid var(--medium)", color:"var(--cream)", padding:"4px 7px", fontSize:"0.72rem", fontFamily:"Raleway,sans-serif", cursor:"pointer" }}>
-                          {[["pending","Chờ xử lý"],["confirmed","Đã xác nhận"],["shipping","Đang giao"],["completed","Hoàn thành"],["cancelled","Đã hủy"]].map(([v,l]) => (
-                            <option key={v} value={v}>{l}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
-                      {o.items?.map((it,i) => (
-                        <span key={i} style={{ fontSize:"0.72rem", padding:"2px 9px", background:"rgba(201,168,76,0.08)", border:"1px solid rgba(201,168,76,0.15)", color:"var(--cream2)" }}>
-                          {it.name} ×{it.quantity}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <section className="admin-panel">
+            <h1>Đơn hàng</h1>
+            {oLoad ? <Spinner/> : <OrderList orders={orders} onStatus={async (id, status) => { await updateOrderStatus(id, status); refetchOrders(); }}/>}
+          </section>
         )}
 
-        {/* ── Users ── */}
+        {tab === "payments" && (
+          <section className="admin-panel">
+            <div className="admin-section-title"><h1>Thanh toán mua lượt</h1><p>{stats.pendingPayments} giao dịch cần xác nhận</p></div>
+            <PaymentList payments={payments.slice().reverse()} onConfirm={confirmPayment} onCancel={cancelPayment}/>
+          </section>
+        )}
+
         {tab === "users" && (
+          <section className="admin-panel">
+            <h1>Người dùng và vai trò</h1>
+            <UserTable users={users} onToggle={toggleUser}/>
+          </section>
+        )}
+      </main>
+
+      {modal && <ProductModal product={modal === "new" ? null : modal} onClose={() => setModal(null)} onSave={() => { setModal(null); refetchProducts(); }}/>}
+    </div>
+  );
+}
+
+function ProductTable({ products, onEdit, onDelete }) {
+  return (
+    <div className="admin-table product-table">
+      <div className="head"><span>Ảnh</span><span>Tên sản phẩm</span><span>Giá</span><span>Kho</span><span>Mệnh</span><span></span></div>
+      {products.map((p) => (
+        <div className="row" key={p.id}>
+          <img src={p.image} alt={p.name}/>
+          <span><b>{p.name}</b><small>{p.category}</small></span>
+          <span className="price-num">{fmt(p.price)}</span>
+          <span>{p.stock}</span>
+          <span>{p.element}</span>
+          <span className="admin-row-actions"><button onClick={() => onEdit(p)}><Pencil size={15}/></button><button onClick={() => onDelete(p.id)}><Trash2 size={15}/></button></span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OrderList({ orders, onStatus }) {
+  if (!orders.length) return <div className="admin-empty">Chưa có đơn hàng.</div>;
+  return orders.slice().reverse().map((order) => (
+    <article className="admin-order" key={order.id}>
+      <div>
+        <b>#{order.orderId}</b>
+        <span>{order.customer?.name} · {order.customer?.phone} · {order.customer?.city}</span>
+        <small>{new Date(order.createdAt).toLocaleString("vi-VN")}</small>
+      </div>
+      <section>
+        <strong>{fmt(order.total)}</strong>
+        <select value={order.status} onChange={(e) => onStatus(order.id, e.target.value)}>
+          <option value="pending">Chờ xử lý</option>
+          <option value="confirmed">Đã xác nhận</option>
+          <option value="shipping">Đang giao</option>
+          <option value="completed">Hoàn thành</option>
+          <option value="cancelled">Đã hủy</option>
+        </select>
+      </section>
+    </article>
+  ));
+}
+
+function PaymentList({ payments, onConfirm, onCancel }) {
+  if (!payments.length) return <div className="admin-empty">Không có thanh toán nào cần hiển thị.</div>;
+  return payments.map((p) => (
+    <article className="admin-payment" key={p.id}>
+      <div>
+        <div className="admin-payment-top"><b>{p.packageName || p.packageId}</b><StatusPill status={p.status}/></div>
+        <p>{p.userName || "Khách"} {p.userEmail ? `· ${p.userEmail}` : ""}</p>
+        <small>Nội dung CK: {p.desc} · {new Date(p.createdAt).toLocaleString("vi-VN")}</small>
+      </div>
+      <section>
+        <strong>{fmt(p.amount)}</strong>
+        <span>{p.slots} lượt</span>
+        {p.status === "pending" && (
           <div>
-            <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.9rem", letterSpacing:4, marginBottom:22 }}>Người Dùng</h1>
-            <div style={{ background:"var(--dark2)", border:"1px solid rgba(201,168,76,0.15)" }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 155px 95px 75px 80px 70px", gap:0, padding:"10px 18px", fontSize:"0.65rem", letterSpacing:2, textTransform:"uppercase", color:"var(--text-light)", borderBottom:"1px solid rgba(201,168,76,0.1)" }}>
-                <span>Người Dùng</span><span>Email</span><span>Vai Trò</span><span>Mệnh</span><span>Trạng Thái</span><span>Thao Tác</span>
-              </div>
-              {users.map(u => (
-                <div key={u.id} style={{ display:"grid", gridTemplateColumns:"1fr 155px 95px 75px 80px 70px", gap:0, padding:"12px 18px", borderBottom:"1px solid rgba(255,255,255,0.04)", alignItems:"center" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <div style={{ width:34, height:34, borderRadius:"50%", background:u.color||"var(--gold)", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, color:"var(--black)", flexShrink:0 }}>{u.avatar}</div>
-                    <div>
-                      <div style={{ fontWeight:600, fontSize:"0.85rem" }}>{u.name}</div>
-                      <div style={{ fontSize:"0.68rem", color:"var(--text-light)" }}>{u.phone}</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize:"0.75rem", color:"var(--text-light)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.email}</div>
-                  <span style={{ fontSize:"0.68rem", padding:"2px 7px", background: u.role==="admin"?"rgba(201,168,76,0.15)":"rgba(41,128,185,0.15)", color: u.role==="admin"?"var(--gold)":"#2980b9", borderRadius:2, display:"inline-block" }}>
-                    {u.role==="admin"?"👑 Admin":"👤 User"}
-                  </span>
-                  <div style={{ fontSize:"0.78rem", color:"var(--text-light)" }}>{u.element||"—"}</div>
-                  <span style={{ fontSize:"0.68rem", padding:"2px 7px", background: u.active?"rgba(39,174,96,0.15)":"rgba(192,57,43,0.15)", color: u.active?"#27ae60":"#e74c3c", borderRadius:2, display:"inline-block" }}>
-                    {u.active?"Hoạt động":"Bị khóa"}
-                  </span>
-                  <div>
-                    {u.role !== "admin" && (
-                      <button onClick={()=>toggleUser(u)} style={{ background:"none", border:`1px solid ${u.active?"rgba(192,57,43,0.4)":"rgba(39,174,96,0.4)"}`, color: u.active?"#e74c3c":"#27ae60", padding:"3px 9px", cursor:"pointer", fontSize:"0.68rem", fontFamily:"Raleway,sans-serif" }}>
-                        {u.active?"Khóa":"Mở"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <button className="admin-confirm" onClick={() => onConfirm(p)}><ShieldCheck size={14}/> Xác nhận</button>
+            <button className="admin-cancel" onClick={() => onCancel(p)}>Hủy</button>
           </div>
         )}
-      </div>
+      </section>
+    </article>
+  ));
+}
+
+function UserTable({ users, onToggle }) {
+  return (
+    <div className="admin-table user-table">
+      <div className="head"><span>Người dùng</span><span>Email</span><span>Vai trò</span><span>Lượt</span><span>Trạng thái</span><span></span></div>
+      {users.map((u) => (
+        <div className="row" key={u.id}>
+          <span className="admin-user-cell"><i style={{ background: u.color || "var(--gold)" }}>{u.avatar}</i><b>{u.name}</b><small>{u.phone || "Chưa có SĐT"}</small></span>
+          <span>{u.email}</span>
+          <span><span className={`role-badge ${u.role}`}>{u.role === "admin" ? "Admin" : "User"}</span></span>
+          <span>{Number(u.analysisSlots || 0)}</span>
+          <span><StatusPill status={u.active ? "completed" : "cancelled"}/></span>
+          <span>{u.role !== "admin" && <button className="admin-toggle" onClick={() => onToggle(u)}>{u.active ? "Khóa" : "Mở"}</button>}</span>
+        </div>
+      ))}
     </div>
   );
 }
