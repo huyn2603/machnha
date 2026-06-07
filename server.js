@@ -159,19 +159,19 @@ app.get("/image-data-url", async (req, res) => {
   }
 });
 
-app.patch("/analysis-payments/:id/confirm", (req, res) => {
-  const id = Number(req.params.id);
-  const payment = router.db.get("analysisPayments").find({ id }).value();
-  if (!payment) return res.status(404).json({ error: "Payment not found" });
-
+function confirmAnalysisPayment(payment, meta = {}) {
   const now = new Date().toISOString();
   const slots = Number(payment.slots || 0);
   const patch = {
     status: "paid",
-    paidAt: payment.paidAt || now,
+    paidAt: meta.paidAt || payment.paidAt || now,
     confirmedAt: now,
-    confirmedBy: req.body?.adminId || null,
+    confirmedBy: meta.confirmedBy || null,
+    confirmSource: meta.confirmSource || "admin",
   };
+
+  if (meta.bankTransactionId) patch.bankTransactionId = meta.bankTransactionId;
+  if (meta.bankPayload) patch.bankPayload = meta.bankPayload;
 
   if (payment.userId && !payment.creditedAt) {
     const user = router.db.get("users").find({ id: Number(payment.userId) }).value();
@@ -186,8 +186,62 @@ app.patch("/analysis-payments/:id/confirm", (req, res) => {
     }
   }
 
-  const updated = router.db.get("analysisPayments").find({ id }).assign(patch).write();
+  return router.db.get("analysisPayments").find({ id: Number(payment.id) }).assign(patch).write();
+}
+
+function normalizeText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+app.patch("/analysis-payments/:id/confirm", (req, res) => {
+  const id = Number(req.params.id);
+  const payment = router.db.get("analysisPayments").find({ id }).value();
+  if (!payment) return res.status(404).json({ error: "Payment not found" });
+
+  const updated = confirmAnalysisPayment(payment, {
+    confirmedBy: req.body?.adminId || null,
+    confirmSource: "admin",
+  });
   res.json(updated);
+});
+
+app.post("/analysis-payments/bank-webhook", (req, res) => {
+  const expectedSecret = process.env.PAYMENT_WEBHOOK_SECRET;
+  const receivedSecret = req.headers["x-webhook-secret"] || req.body?.secret;
+  if (expectedSecret && receivedSecret !== expectedSecret) {
+    return res.status(401).json({ error: "Invalid webhook secret" });
+  }
+
+  const payload = req.body || {};
+  const content = normalizeText(payload.content || payload.description || payload.addInfo || payload.transferContent);
+  const amount = Number(payload.amount || payload.transferAmount || payload.creditAmount || 0);
+  const transactionId = payload.transactionId || payload.reference || payload.refNo || payload.id || null;
+
+  if (!content || !amount) {
+    return res.status(400).json({ error: "Webhook must include transfer content and amount" });
+  }
+
+  const payments = router.db.get("analysisPayments").value() || [];
+  const payment = payments.find((item) => {
+    if (item.status !== "pending") return false;
+    if (Number(item.amount || 0) !== amount) return false;
+    const desc = normalizeText(item.desc);
+    return desc && content.includes(desc);
+  });
+
+  if (!payment) {
+    return res.status(404).json({ error: "No matching pending payment" });
+  }
+
+  const updated = confirmAnalysisPayment(payment, {
+    paidAt: payload.paidAt || payload.transactionDate || new Date().toISOString(),
+    confirmedBy: "bank-webhook",
+    confirmSource: "bank-webhook",
+    bankTransactionId: transactionId,
+    bankPayload: payload,
+  });
+
+  res.json({ ok: true, payment: updated });
 });
 
 app.patch("/analysis-payments/:id/cancel", (req, res) => {

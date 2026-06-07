@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Sparkles, CheckCircle, Star, Clock,
   MessageCircle, Video, Calendar,
@@ -181,14 +181,30 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
   const [statusMsg, setStatusMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [paymentDesc] = useState(() => `${pkg.desc} ${Date.now().toString().slice(-6)}`);
+  const createdRef = useRef(false);
+  const activatedRef = useRef(false);
 
   const copy = (text) => {
     navigator.clipboard.writeText(text).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2000); });
   };
 
-  const submitTransfer = async () => {
+  const activatePaidPayment = async (latest) => {
+    if (activatedRef.current) return;
+    activatedRef.current = true;
+    if (latest.userId) {
+      const fresh = await getUserById(latest.userId);
+      syncUser?.(fresh);
+    } else {
+      addSlots(Number(latest.slots || pkg.slots));
+    }
+    setStep("done");
+  };
+
+  const createPendingPayment = async () => {
+    if (createdRef.current) return;
+    createdRef.current = true;
     setBusy(true);
-    setStatusMsg("");
+    setStatusMsg("Đang tạo mã thanh toán tự động...");
     try {
       const created = await createAnalysisPayment({
         packageId: pkg.id,
@@ -204,13 +220,30 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
         userEmail: user?.email || null,
       });
       setPayment(created);
-      setStatusMsg("Đã gửi yêu cầu xác nhận. Lượt sẽ được cộng ngay khi admin đối soát và xác nhận thanh toán.");
+      setStatusMsg("Mã thanh toán đã sẵn sàng. Sau khi chuyển khoản thành công, hệ thống sẽ tự kích hoạt khi nhận được thông báo từ ngân hàng.");
     } catch (error) {
-      setStatusMsg(error.message || "Không gửi được yêu cầu xác nhận thanh toán.");
+      createdRef.current = false;
+      setStatusMsg(error.message || "Không tạo được mã thanh toán.");
     } finally {
       setBusy(false);
     }
   };
+
+  useEffect(() => {
+    createPendingPayment();
+  }, []);
+
+  useEffect(() => {
+    if (!payment?.id || step === "done") return undefined;
+    const timer = setInterval(async () => {
+      try {
+        const latest = await getAnalysisPayment(payment.id);
+        setPayment(latest);
+        if (latest.status === "paid") await activatePaidPayment(latest);
+      } catch {}
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [payment?.id, step]);
 
   const checkPayment = async () => {
     if (!payment?.id) return;
@@ -220,15 +253,9 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
       const latest = await getAnalysisPayment(payment.id);
       setPayment(latest);
       if (latest.status === "paid") {
-        if (latest.userId) {
-          const fresh = await getUserById(latest.userId);
-          syncUser?.(fresh);
-        } else {
-          addSlots(Number(latest.slots || pkg.slots));
-        }
-        setStep("done");
+        await activatePaidPayment(latest);
       } else {
-        setStatusMsg("Giao dịch chưa được xác nhận. Admin cần đối soát trong trang quản trị trước khi lượt được cộng.");
+        setStatusMsg("Chưa nhận được thông báo thanh toán thành công. Hệ thống vẫn đang tự kiểm tra, bạn có thể thử lại sau vài giây.");
       }
     } catch (error) {
       setStatusMsg(error.message || "Không kiểm tra được trạng thái thanh toán.");
@@ -307,7 +334,7 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
             </div>
             <div style={{ padding:"10px 12px", background:"rgba(212,175,90,0.04)", border:"1px solid rgba(212,175,90,0.1)", borderRadius:4, marginBottom:10 }}>
               <p style={{ fontSize:"0.78rem", color:"var(--cream2)", lineHeight:1.6 }}>
-                Chuyển khoản xong → gửi yêu cầu xác nhận. Lượt chỉ được cộng khi trạng thái giao dịch là <strong style={{ color:"var(--gold)" }}>đã thanh toán</strong>.
+                Chuyển khoản đúng số tiền và nội dung bên dưới. Khi ngân hàng/cổng thanh toán báo thành công, lượt sẽ được cộng tự động.
               </p>
             </div>
             {statusMsg && (
@@ -315,17 +342,11 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
                 {statusMsg}
               </div>
             )}
-            {!payment ? (
-              <button disabled={busy} onClick={submitTransfer} style={{ display:"block", width:"100%", padding:"13px", background:"linear-gradient(135deg,var(--gold-dark),var(--gold))", border:"none", color:"var(--black)", fontFamily:"'Be Vietnam Pro',Raleway,sans-serif", fontWeight:800, fontSize:"0.85rem", borderRadius:4, cursor:busy?"wait":"pointer", opacity:busy?0.7:1 }}>
-                {busy ? "Đang gửi yêu cầu..." : "Tôi Đã Chuyển Khoản — Gửi Xác Nhận"}
-              </button>
-            ) : (
-              <button disabled={busy} onClick={checkPayment} style={{ display:"block", width:"100%", padding:"13px", background:"linear-gradient(135deg,var(--gold-dark),var(--gold))", border:"none", color:"var(--black)", fontFamily:"'Be Vietnam Pro',Raleway,sans-serif", fontWeight:800, fontSize:"0.85rem", borderRadius:4, cursor:busy?"wait":"pointer", opacity:busy?0.7:1 }}>
-                {busy ? "Đang kiểm tra..." : "Kiểm Tra Thanh Toán Để Kích Hoạt Lượt"}
-              </button>
-            )}
+            <button disabled={busy || !payment} onClick={checkPayment} style={{ display:"block", width:"100%", padding:"13px", background:"linear-gradient(135deg,var(--gold-dark),var(--gold))", border:"none", color:"var(--black)", fontFamily:"'Be Vietnam Pro',Raleway,sans-serif", fontWeight:800, fontSize:"0.85rem", borderRadius:4, cursor:busy?"wait":"pointer", opacity:(busy || !payment)?0.7:1 }}>
+              {busy ? "Đang xử lý..." : "Tôi Đã Chuyển Khoản — Kiểm Tra Ngay"}
+            </button>
             <p style={{ marginTop:8, color:"var(--text-light)", fontSize:"0.7rem", lineHeight:1.55, textAlign:"center" }}>
-              Mã yêu cầu: {payment?.id || "sẽ tạo sau khi gửi xác nhận"}
+              Mã yêu cầu: {payment?.id || "đang tạo tự động"}
             </p>
           </>
         )}
