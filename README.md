@@ -16,17 +16,23 @@ To set up a new clone, copy the template and fill in your own keys:
 Copy-Item .env.example .env.local
 ```
 
-Required for Hugging Face image try-on:
+Required for Gemini text consultation:
 
 ```env
-HF_TOKEN=your_hugging_face_token
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_TEXT_MODEL=gemini-2.5-flash
+GEMINI_API_VERSION=v1beta
 ```
 
-Optional for Gemini text consultation:
+How to get the key:
 
-```env
-GEMINI_API_KEY=your_gemini_key
-```
+1. Open [Google AI Studio](https://aistudio.google.com/apikey).
+2. Sign in with your Google account.
+3. Click **Create API key**.
+4. Copy the key into `.env.local` as `GEMINI_API_KEY=...`.
+5. Restart `npm start` so `server.js` reads the new key.
+
+The app uses Gemini only for text consultation.
 
 ### `npm start`
 

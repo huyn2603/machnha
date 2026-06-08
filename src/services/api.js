@@ -76,11 +76,6 @@ export const requestAIConsultation = (data) => req("/ai/consult", {
   method: "POST",
   body: JSON.stringify(data),
 });
-export const getImageDataUrl = (url) => req(`/image-data-url?url=${encodeURIComponent(url)}`);
-export const requestHuggingFaceTryOn = (data) => req("/ai/try-on-hf", {
-  method: "POST",
-  body: JSON.stringify(data),
-});
 
 /* Users */
 export const getUsers       = ()             => req("/users");

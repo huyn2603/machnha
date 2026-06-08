@@ -5,7 +5,6 @@ import {
   Lock, Crown, Users, X, Copy, Check,
 } from "lucide-react";
 import FengShuiAnalyzer from "../components/FengShuiAnalyzer";
-import AIVisualConsultant from "../components/AIVisualConsultant";
 import { useFetch } from "../hooks/useFetch";
 import { createAnalysisPayment, getAnalysisPayment, getProducts, getUserById, patchUser } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -493,7 +492,7 @@ export default function TuVanPage() {
           {[
             { id:"free",    icon:<Sparkles size={15}/>, label:"Phân Tích",        sub:"Nhập thông tin & phân tích" },
             { id:"ai-paid", icon:<Crown size={15}/>,    label:"Mua Lượt",         sub:"Mở khoá nội dung chi tiết" },
-            { id:"expert",  icon:<Star size={15}/>,     label:"AI Tư Vấn", sub:"Tư vấn & ướm thử ảnh" },
+            { id:"expert",  icon:<Star size={15}/>,     label:"AI Tư Vấn", sub:"Tư vấn chuyên sâu" },
           ].map(t=>(
             <button key={t.id} onClick={()=>setTab(t.id)} style={{
               padding:"16px 10px", background:tab===t.id?"linear-gradient(135deg,rgba(212,175,90,0.15),rgba(212,175,90,0.08))":"transparent",
@@ -726,8 +725,6 @@ export default function TuVanPage() {
         {/* ─── TAB: Tư Vấn Chuyên Gia ─── */}
         {tab==="expert" && (
           <div>
-            <AIVisualConsultant products={products}/>
-
             <div style={{ textAlign:"center", marginBottom:32 }}>
               <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(1.6rem,3vw,2.3rem)", fontWeight:300, letterSpacing:4, marginBottom:8, color:"var(--white)" }}>
                 Tư Vấn 1–1 Với Thầy Phong Thủy

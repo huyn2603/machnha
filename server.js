@@ -23,20 +23,8 @@ const middlewares = jsonServer.defaults();
 const port = process.env.PORT || 3001;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+const GEMINI_API_VERSION = process.env.GEMINI_API_VERSION || "v1beta";
 const TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
-const COMFYUI_URL = process.env.COMFYUI_URL || "http://127.0.0.1:8188";
-const COMFYUI_WORKFLOW_PATH = process.env.COMFYUI_WORKFLOW_PATH;
-const HF_TOKEN = process.env.HF_TOKEN || process.env.HUGGINGFACE_TOKEN;
-const HF_IMAGE_MODEL = process.env.HF_IMAGE_MODEL || "black-forest-labs/FLUX.1-schnell";
-const HF_IMAGE_TO_IMAGE_MODEL = process.env.HF_IMAGE_TO_IMAGE_MODEL || "Qwen/Qwen-Image-Edit";
-const HF_PROVIDER = process.env.HF_PROVIDER || "hf-inference";
-const HF_PROVIDERS = (process.env.HF_PROVIDERS || HF_PROVIDER || "fal-ai,replicate,hf-inference")
-  .split(",")
-  .map((provider) => provider.trim())
-  .filter(Boolean);
-const HF_API_BASE = process.env.HF_API_BASE || "https://router.huggingface.co";
-const FAL_KEY = process.env.FAL_KEY;
-const FAL_IMAGE_TO_IMAGE_MODEL = process.env.FAL_IMAGE_TO_IMAGE_MODEL || "fal-ai/flux/srpo/image-to-image";
 
 app.use(middlewares);
 app.use(bodyParser.json({ limit: "30mb" }));
@@ -70,7 +58,7 @@ function extractGeminiText(data) {
 }
 
 async function callGemini(model, body) {
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/${GEMINI_API_VERSION}/models/${model}:generateContent`, {
     method: "POST",
     headers: {
       "x-goog-api-key": GEMINI_API_KEY,
@@ -138,24 +126,6 @@ Trả về 5-7 đoạn ngắn, có các phần: Tổng quan, cách chọn vật 
     res.json({ text: extractGeminiText(data) });
   } catch (error) {
     res.status(500).json({ error: "AI consultation failed", message: error.message });
-  }
-});
-
-app.get("/image-data-url", async (req, res) => {
-  try {
-    const source = String(req.query.url || "");
-    if (!source) return res.status(400).json({ error: "Missing image url" });
-    if (source.startsWith("data:image/")) return res.json({ dataUrl: source });
-    if (!/^https?:\/\//i.test(source)) return res.status(400).json({ error: "Only http, https or data image URLs are supported" });
-
-    const response = await fetch(source);
-    if (!response.ok) return res.status(502).json({ error: `Cannot load image: ${response.status}` });
-
-    const mimeType = response.headers.get("content-type")?.split(";")[0] || "image/jpeg";
-    const buffer = Buffer.from(await response.arrayBuffer());
-    res.json({ dataUrl: `data:${mimeType};base64,${buffer.toString("base64")}` });
-  } catch (error) {
-    res.status(500).json({ error: "Cannot prepare image", message: error.message });
   }
 });
 
@@ -259,276 +229,16 @@ app.patch("/analysis-payments/:id/cancel", (req, res) => {
   res.json(updated);
 });
 
-app.post("/ai/try-on-comfy", async (req, res) => {
-  try {
-    if (!COMFYUI_WORKFLOW_PATH || !fs.existsSync(COMFYUI_WORKFLOW_PATH)) {
-      return res.status(503).json({
-        error: "COMFYUI_WORKFLOW_PATH is missing",
-        message: "Chưa cấu hình workflow FLUX/ComfyUI local. App sẽ dùng chế độ ghép local bằng canvas.",
-      });
-    }
-
-    const workflow = JSON.parse(fs.readFileSync(COMFYUI_WORKFLOW_PATH, "utf8"));
-    const { prompt, productName, roomType, note } = req.body || {};
-    const finalPrompt = prompt || [
-      "photorealistic interior product placement, realistic shadows, matched perspective and lighting",
-      productName ? `product: ${productName}` : "",
-      roomType ? `room: ${roomType}` : "",
-      note ? `user note: ${note}` : "",
-      "Flux schnell/dev style, natural scale, no distorted object, no text",
-    ].filter(Boolean).join(", ");
-
-    Object.values(workflow).forEach((node) => {
-      if (!node?.inputs) return;
-      if (typeof node.inputs.text === "string" && /prompt|positive/i.test(node._meta?.title || "")) {
-        node.inputs.text = finalPrompt;
-      }
-      if (typeof node.inputs.prompt === "string") node.inputs.prompt = finalPrompt;
-    });
-
-    const response = await fetch(`${COMFYUI_URL}/prompt`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: workflow }),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(response.status).json({ error: "ComfyUI queue failed", message: data?.error || response.statusText });
-    }
-    res.json({ ...data, mode: "comfyui", message: "Đã gửi job sang ComfyUI local. Mở ComfyUI để xem ảnh output." });
-  } catch (error) {
-    res.status(500).json({ error: "ComfyUI try-on failed", message: error.message });
+app.get("/ai/gemini-health", (req, res) => {
+  if (!GEMINI_API_KEY) {
+    return res.status(503).json({ ok: false, message: "Server chua doc duoc GEMINI_API_KEY tu .env.local." });
   }
-});
-
-app.post("/ai/try-on-hf", async (req, res) => {
-  try {
-    if (!HF_TOKEN) {
-      return res.status(503).json({
-        error: "HF_TOKEN is missing",
-        message: "Chưa cấu hình HF_TOKEN trong .env.local nên đang dùng ảnh preview local.",
-      });
-    }
-
-    const {
-      productName = "feng shui decor object",
-      roomType = "interior room",
-      note = "",
-      element = "",
-      previewImage = "",
-    } = req.body || {};
-
-    const prompt = [
-      "Improve this product try-on preview into a photorealistic image.",
-      `Keep the same room/table photo composition and keep the ${productName} at the same placement.`,
-      element ? `The decor has feng shui ${element} energy.` : "",
-      note ? `User placement note: ${note}.` : "",
-      `Room type: ${roomType}.`,
-      "Remove cutout edges and rectangular artifacts, blend lighting and perspective, add realistic contact shadows, keep the original background natural, high detail, no text, no watermark",
-    ].filter(Boolean).join(" ");
-
-    const hasPreview = /^data:image\/[^;]+;base64,/.test(previewImage);
-    let model = hasPreview ? HF_IMAGE_TO_IMAGE_MODEL : HF_IMAGE_MODEL;
-    let mode = hasPreview ? "hf-image-to-image" : "hf-text-to-image";
-
-    if (hasPreview && FAL_KEY && process.env.USE_FAL_DIRECT === "true") {
-      const falPrompt = [
-        "Photorealistic cleanup of this product try-on photo.",
-        `Keep the exact table/background composition and keep the ${productName} in the same position.`,
-        "Remove square cutout edges, remove dark/black product-card background, blend the object into the table, natural contact shadow, realistic lighting, preserve the uploaded room/table photo.",
-        note ? `User note: ${note}.` : "",
-        "No new room, no new furniture, no text, no watermark.",
-      ].filter(Boolean).join(" ");
-
-      const falResponse = await fetch(`https://fal.run/${FAL_IMAGE_TO_IMAGE_MODEL}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Key ${FAL_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image_url: previewImage,
-          prompt: falPrompt,
-          strength: 0.45,
-          guidance_scale: 4.5,
-          num_inference_steps: 28,
-          num_images: 1,
-          enable_safety_checker: true,
-          output_format: "png",
-          sync_mode: true,
-        }),
-      });
-
-      let falData = null;
-      try {
-        falData = await falResponse.json();
-      } catch {}
-
-      if (!falResponse.ok) {
-        return res.status(falResponse.status).json({
-          error: "fal.ai try-on failed",
-          message: falData?.detail || falData?.message || falData?.error || `fal.ai API ${falResponse.status}`,
-        });
-      }
-
-      const image = falData?.images?.[0]?.url;
-      if (!image) {
-        return res.status(502).json({
-          error: "fal.ai did not return an image",
-          message: "fal.ai đã chạy nhưng không trả về images[0].url.",
-        });
-      }
-
-      return res.json({
-        image,
-        model: FAL_IMAGE_TO_IMAGE_MODEL,
-        provider: "fal.ai",
-        mode: "fal-image-to-image",
-        prompt: falPrompt,
-      });
-    }
-
-    let body = hasPreview
-      ? {
-          inputs: previewImage.split(",")[1],
-          parameters: {
-            prompt,
-            negative_prompt: "cartoon, illustration, floating object, square patch, transparent box, watermark, text, distorted product",
-            num_inference_steps: 20,
-            guidance_scale: 3.5,
-            target_size: { width: 1024, height: 1024 },
-          },
-          options: { wait_for_model: true, use_cache: false },
-        }
-      : {
-          inputs: [
-            "Photorealistic interior product placement render.",
-            `Place a ${productName} naturally inside a ${roomType}.`,
-            "realistic scale, matched perspective, natural contact shadows, soft ambient light, no text, no watermark",
-          ].join(" "),
-          parameters: {
-            width: 1024,
-            height: 768,
-            num_inference_steps: 8,
-            guidance_scale: 1.5,
-          },
-          options: { wait_for_model: true, use_cache: false },
-        };
-
-    let response;
-    let usedProvider = "";
-    const providerErrors = [];
-
-    for (const provider of HF_PROVIDERS) {
-      const endpoint = `${HF_API_BASE}/${provider}/models/${model}`;
-      try {
-        response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${HF_TOKEN}`,
-            "Content-Type": "application/json",
-            Accept: "image/png",
-          },
-          body: JSON.stringify(body),
-        });
-      } catch (networkError) {
-        providerErrors.push(`${provider}: network ${networkError.message}`);
-        continue;
-      }
-
-      if (response.ok) {
-        usedProvider = provider;
-        break;
-      }
-
-      let message = `HTTP ${response.status}`;
-      try {
-        const data = await response.clone().json();
-        message = data?.error || data?.message || message;
-      } catch {}
-
-      providerErrors.push(`${provider}: ${message}`);
-      const unsupported = /not supported by provider|model .* not supported|provider/i.test(message);
-      if (!unsupported && response.status !== 404) {
-        usedProvider = provider;
-        break;
-      }
-    }
-
-    if (!response) {
-      return res.status(502).json({
-        error: "Cannot connect to Hugging Face",
-        message: `Không kết nối được Hugging Face (${HF_API_BASE}). Chi tiết: ${providerErrors.join(" | ")}`,
-      });
-    }
-
-    const contentType = response.headers.get("content-type") || "";
-    if (!response.ok) {
-      let message = `Hugging Face API ${response.status}`;
-      try {
-        const data = await response.json();
-        message = data?.error || data?.message || message;
-      } catch {}
-      return res.status(response.status).json({
-        error: "Hugging Face try-on failed",
-        message: `${message}. Đã thử provider: ${providerErrors.join(" | ")}`,
-      });
-    }
-
-    if (!contentType.startsWith("image/")) {
-      const data = await response.json().catch(() => null);
-      return res.status(502).json({
-        error: "Hugging Face did not return an image",
-        message: data?.error || "Model không trả về ảnh. Hãy thử model text-to-image khác.",
-      });
-    }
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-    res.json({
-      image: `data:${contentType.split(";")[0]};base64,${buffer.toString("base64")}`,
-      model,
-      provider: usedProvider,
-      mode,
-      prompt,
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Hugging Face try-on failed", message: error.message });
-  }
-});
-
-app.get("/ai/hf-health", async (req, res) => {
-  if (!HF_TOKEN) {
-    return res.status(503).json({ ok: false, message: "Server chưa đọc được HF_TOKEN từ .env.local." });
-  }
-
-  try {
-    const response = await fetch("https://huggingface.co/api/whoami-v2", {
-      headers: { Authorization: `Bearer ${HF_TOKEN}` },
-    });
-    const text = await response.text();
-    if (!response.ok) {
-      return res.status(response.status).json({
-        ok: false,
-        message: `Token/API Hugging Face trả lỗi ${response.status}.`,
-        detail: text.slice(0, 500),
-      });
-    }
-    const data = JSON.parse(text);
-    res.json({
-      ok: true,
-      user: data.name || data.auth?.accessToken?.displayName || "unknown",
-      provider: HF_PROVIDER,
-      providers: HF_PROVIDERS,
-      imageModel: HF_IMAGE_MODEL,
-      imageToImageModel: HF_IMAGE_TO_IMAGE_MODEL,
-      apiBase: HF_API_BASE,
-    });
-  } catch (error) {
-    res.status(502).json({
-      ok: false,
-      message: `Backend không gọi được Hugging Face. Lỗi mạng/DNS/proxy: ${error.message}`,
-    });
-  }
+  res.json({
+    ok: true,
+    provider: "Google Gemini",
+    apiVersion: GEMINI_API_VERSION,
+    textModel: TEXT_MODEL,
+  });
 });
 
 app.use(router);
