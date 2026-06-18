@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Sparkles, CheckCircle, Star, Clock,
   MessageCircle, Video, Calendar,
@@ -187,7 +187,7 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
     navigator.clipboard.writeText(text).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2000); });
   };
 
-  const activatePaidPayment = async (latest) => {
+  const activatePaidPayment = useCallback(async (latest) => {
     if (activatedRef.current) return;
     activatedRef.current = true;
     if (latest.userId) {
@@ -197,9 +197,9 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
       addSlots(Number(latest.slots || pkg.slots));
     }
     setStep("done");
-  };
+  }, [pkg.slots, syncUser]);
 
-  const createPendingPayment = async () => {
+  const createPendingPayment = useCallback(async () => {
     if (createdRef.current) return;
     createdRef.current = true;
     setBusy(true);
@@ -226,11 +226,11 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
     } finally {
       setBusy(false);
     }
-  };
+  }, [paymentDesc, pkg.amount, pkg.desc, pkg.id, pkg.name, pkg.slots, user?.email, user?.id, user?.name]);
 
   useEffect(() => {
     createPendingPayment();
-  }, []);
+  }, [createPendingPayment]);
 
   useEffect(() => {
     if (!payment?.id || step === "done") return undefined;
@@ -242,7 +242,7 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
       } catch {}
     }, 5000);
     return () => clearInterval(timer);
-  }, [payment?.id, step]);
+  }, [activatePaidPayment, payment?.id, step]);
 
   const checkPayment = async () => {
     if (!payment?.id) return;

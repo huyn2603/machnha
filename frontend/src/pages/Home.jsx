@@ -7,6 +7,12 @@ import { useToast, Toasts } from "../components/Toast";
 import { useFetch } from "../hooks/useFetch";
 import { getProducts, getCategories, getTestimonials } from "../services/api";
 
+const SLIDES = [
+  { sub:"Vật Phẩm Chính Hãng – Mệnh Hợp",        bg:"linear-gradient(135deg,#0D0B08,#1a1208,#0f0c06)", accent:"#D4AF5A" },
+  { sub:"Tỳ Hưu Chiêu Tài – Đẩy Lùi Vận Xui",    bg:"linear-gradient(135deg,#100a0a,#1e1008,#0a0808)", accent:"#C0392B" },
+  { sub:"Trầm Hương Khánh Hòa Nguyên Chất",        bg:"linear-gradient(135deg,#080e06,#0f1a0a,#060906)", accent:"#8B7A20" },
+];
+
 export default function Home() {
   const { toasts, show } = useToast();
   const [catFilter, setCatFilter] = useState("all");
@@ -15,12 +21,6 @@ export default function Home() {
   const { data: products     = [], loading: pLoad, error: pErr, refetch: rP } = useFetch(getProducts,     []);
   const { data: categories   = [], loading: cLoad } = useFetch(getCategories,   []);
   const { data: testimonials = [] }                                             = useFetch(getTestimonials, []);
-
-  const SLIDES = [
-    { sub:"Vật Phẩm Chính Hãng – Mệnh Hợp",        bg:"linear-gradient(135deg,#0D0B08,#1a1208,#0f0c06)", accent:"#D4AF5A" },
-    { sub:"Tỳ Hưu Chiêu Tài – Đẩy Lùi Vận Xui",    bg:"linear-gradient(135deg,#100a0a,#1e1008,#0a0808)", accent:"#C0392B" },
-    { sub:"Trầm Hương Khánh Hòa Nguyên Chất",        bg:"linear-gradient(135deg,#080e06,#0f1a0a,#060906)", accent:"#8B7A20" },
-  ];
 
   useEffect(() => {
     const t = setInterval(()=>setSlideIdx(i=>(i+1)%SLIDES.length), 5000);
