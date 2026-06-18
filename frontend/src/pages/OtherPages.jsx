@@ -6,7 +6,7 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useToast, Toasts } from "../components/Toast";
 import { useFetch } from "../hooks/useFetch";
-import { getOrders, patchUser } from "../services/api";
+import { API_BASE, getOrders, patchUser } from "../services/api";
 
 /* ════════════════════════════════════════
    WISHLIST
@@ -165,8 +165,8 @@ export function Contact() {
     try {
       // Gửi qua Formspree (thay YOUR_FORM_ID bằng ID thật từ formspree.io)
       // Hoặc gửi thẳng vào database + hiển thị thông tin liên hệ
-      // Tạm thời: lưu vào json-server và show success
-      const res = await fetch("http://localhost:3001/contacts", {
+      // Luu vao backend/MySQL va show success
+      const res = await fetch(`${API_BASE}/contacts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useFetch } from "../hooks/useFetch";
 import {
+  API_BASE,
   cancelAnalysisPayment,
   confirmAnalysisPayment,
   createProduct,
@@ -132,7 +133,7 @@ export default function AdminPage() {
   }, [orders, payments]);
 
   const toggleUser = async (target) => {
-    await fetch(`http://localhost:3001/users/${target.id}`, {
+    await fetch(`${API_BASE}/users/${target.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active: !target.active }),

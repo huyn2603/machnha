@@ -2,8 +2,15 @@
   "name": "machnha",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18 <23",
+    "npm": ">=9"
+  },
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
     "lucide-react": "^0.363.0",
+    "mysql2": "^3.11.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
@@ -12,16 +19,16 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "json-server": "^0.17.4"
+    "eslint-plugin-react-hooks": "^7.0.1"
   },
   "scripts": {
-    "start": "cross-env NODE_NO_WARNINGS=1 concurrently \"npm run server\" \"npm run client\"",
-    "client": "react-scripts start",
-    "server": "node server.js",
-    "build": "react-scripts build"
+    "start": "cross-env NODE_NO_WARNINGS=1 concurrently \"npm run backend\" \"npm run frontend\"",
+    "frontend": "cd frontend && node ../node_modules/react-scripts/bin/react-scripts.js start",
+    "backend": "node backend/server.js",
+    "backend:seed": "node backend/scripts/seed.js",
+    "backend:sql": "node backend/scripts/generate-sql.js",
+    "build": "cd frontend && node ../node_modules/react-scripts/bin/react-scripts.js build"
   },
-  "proxy": "http://localhost:3001",
   "browserslist": {
     "production": [
       ">0.2%",

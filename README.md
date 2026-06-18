@@ -1,22 +1,95 @@
-# Getting Started with Create React App
+# Phong Thuy Mach Nha
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Codebase da chia lai:
 
-## Available Scripts
+- `frontend/`: chi chua giao dien React UI, component, page, context, hook va client API.
+- `backend/`: chi chua Express API, ket noi MySQL, repository va script database.
+- `backend/machnha_mysql.sql`: file SQL duy nhat, day du schema va data mau de import vao MySQL.
+- `backend/database.json`: data goc dung de sinh lai SQL khi can.
 
-In the project directory, you can run:
+## Cau truc frontend
 
-## Environment Variables
+```text
+frontend/
+  public/
+  src/
+    components/
+    context/
+    hooks/
+    pages/
+    services/
+    App.jsx
+    index.css
+    index.js
+```
 
-The real `.env.local` file is intentionally ignored by git because it contains private API tokens.
+`frontend/src/services/api.js` chi la client goi API tu browser, khong phai backend.
 
-To set up a new clone, copy the template and fill in your own keys:
+## Cau truc backend
+
+```text
+backend/
+  src/
+    db.js
+    store.js
+  scripts/
+    generate-sql.js
+    seed.js
+  server.js
+  machnha_mysql.sql
+```
+
+## Database MySQL
+
+Database moi la schema quan he that, khong con bang `records` JSON.
+
+Cac bang chinh:
+
+- `categories`
+- `products`
+- `product_features`
+- `product_destinies`
+- `product_images`
+- `users`
+- `coupons`
+- `orders`
+- `order_items`
+- `analysis_payments`
+- `testimonials`
+- `subscribers`
+- `contacts`
+
+File SQL duy nhat can dung:
 
 ```powershell
+mysql -u root -p < backend/machnha_mysql.sql
+```
+
+File nay tu tao database `machnha`, tao tat ca bang, khoa chinh, khoa ngoai, index va import data mau.
+
+Neu dung MySQL Workbench: mo query moi, copy noi dung `backend/machnha_mysql.sql`, bam Run.
+
+## Cai dat
+
+```powershell
+npm install
 Copy-Item .env.example .env.local
 ```
 
-Required for Gemini text consultation:
+Sua `.env.local`:
+
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=machnha
+PORT=3001
+CORS_ORIGIN=http://localhost:3000
+REACT_APP_API_URL=http://localhost:3001
+```
+
+Neu dung AI:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key
@@ -24,75 +97,208 @@ GEMINI_TEXT_MODEL=gemini-2.5-flash
 GEMINI_API_VERSION=v1beta
 ```
 
-How to get the key:
+## Chay app
 
-1. Open [Google AI Studio](https://aistudio.google.com/apikey).
-2. Sign in with your Google account.
-3. Click **Create API key**.
-4. Copy the key into `.env.local` as `GEMINI_API_KEY=...`.
-5. Restart `npm start` so `server.js` reads the new key.
+```powershell
+npm start
+```
 
-The app uses Gemini only for text consultation.
+Hoac chay rieng:
 
-### `npm start`
+```powershell
+npm run backend
+npm run frontend
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Frontend: http://localhost:3000
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Backend: http://localhost:3001
 
-### `npm test`
+Kiem tra backend:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```powershell
+Invoke-RestMethod http://localhost:3001/health
+```
 
-### `npm run build`
+## Build production
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Truoc khi deploy, kiem tra ban build frontend:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```powershell
+npm run build
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Thu muc production cua frontend se nam o:
 
-### `npm run eject`
+```text
+frontend/build
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Backend production chay bang:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```powershell
+node backend/server.js
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Deploy len internet
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Du an nay nen deploy thanh 3 phan:
 
-## Learn More
+- MySQL online: luu database `machnha`.
+- Backend Node/Express: public API, vi du `https://api.machnha.vn`.
+- Frontend React static: website nguoi dung truy cap, vi du `https://machnha.vn`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 1. Dua code len GitHub
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```powershell
+git init
+git add .
+git commit -m "Deploy ready"
+git branch -M main
+git remote add origin https://github.com/your-user/machnha.git
+git push -u origin main
+```
 
-### Code Splitting
+Khong commit `.env.local` vi file nay chua mat khau database va API key.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 2. Tao MySQL online
 
-### Analyzing the Bundle Size
+Co the dung Railway, Aiven, DigitalOcean, Clever Cloud hoac MySQL tren VPS.
+Sau khi tao database, lay cac thong tin:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```env
+DB_HOST=...
+DB_PORT=3306
+DB_USER=...
+DB_PASSWORD=...
+DB_NAME=machnha
+DB_SSL=true
+```
 
-### Making a Progressive Web App
+Import data mau:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```powershell
+mysql -h DB_HOST -P DB_PORT -u DB_USER -p DB_NAME < backend/machnha_mysql.sql
+```
 
-### Advanced Configuration
+Neu nha cung cap da tao san database khac ten `machnha`, sua `DB_NAME` theo ten database do.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### 3. Deploy backend Node/Express
 
-### Deployment
+De don gian, co the dung Render Web Service hoac mot VPS Node.js.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Thiet lap tren hosting:
 
-### `npm run build` fails to minify
+```text
+Root directory: EXE hoac thu muc goc repo neu repo chi chua du an nay
+Build command: npm install
+Start command: node backend/server.js
+Health check path: /health
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Bien moi truong backend production:
+
+```env
+NODE_ENV=production
+PORT=10000
+CORS_ORIGIN=https://machnha.vn,https://www.machnha.vn
+DB_HOST=...
+DB_PORT=3306
+DB_USER=...
+DB_PASSWORD=...
+DB_NAME=machnha
+DB_SSL=true
+GEMINI_API_KEY=...
+GEMINI_TEXT_MODEL=gemini-2.5-flash
+GEMINI_API_VERSION=v1beta
+PAYMENT_WEBHOOK_SECRET=...
+```
+
+Sau khi deploy, test:
+
+```powershell
+Invoke-RestMethod https://api.machnha.vn/health
+```
+
+Ket qua dung se co `ok: true`.
+
+### 4. Deploy frontend React
+
+Co the dung Vercel, Netlify, Render Static Site hoac Cloudflare Pages.
+
+Thiet lap:
+
+```text
+Root directory: EXE hoac thu muc goc repo neu repo chi chua du an nay
+Build command: npm install && npm run build
+Publish directory: frontend/build
+```
+
+Bien moi truong frontend production:
+
+```env
+REACT_APP_API_URL=https://api.machnha.vn
+```
+
+Sau khi doi `REACT_APP_API_URL`, can build/deploy lai frontend vi React doc bien nay luc build.
+
+### 5. Gan ten mien
+
+Mua ten mien tai nha dang ky nhu Cloudflare Registrar, Namecheap, GoDaddy, Mat Bao, PA Vietnam hoac Nhan Hoa.
+
+Goi y cau truc ten mien:
+
+```text
+machnha.vn          -> frontend
+www.machnha.vn      -> frontend
+api.machnha.vn      -> backend
+```
+
+DNS thuong dung:
+
+```text
+Type   Name   Value
+CNAME  www    domain-frontend-cua-hosting
+CNAME  api    domain-backend-cua-hosting
+A/CNAME @     theo huong dan cua hosting frontend
+```
+
+Moi hosting se hien record DNS chinh xac sau khi bam Add custom domain. Copy dung record do vao trang quan ly DNS cua ten mien, cho DNS propagate, roi bam Verify tren hosting.
+
+### 6. De nguoi dung tim thay tren Google
+
+Sau khi website da chay bang ten mien that:
+
+- Doi title/description trong `frontend/public/index.html` neu can them tu khoa kinh doanh.
+- Tao Google Search Console, them domain, xac minh DNS.
+- Submit URL trang chu `https://machnha.vn`.
+- Neu co sitemap, submit `https://machnha.vn/sitemap.xml`.
+- Dat link website tren Facebook, TikTok, Google Business Profile va cac kenh ban hang de Google phat hien nhanh hon.
+- Dung noi dung that, ten san pham ro rang, anh san pham chat luong va mo ta khong copy hang loat.
+
+### 7. Checklist truoc khi cong khai
+
+- `npm run build` thanh cong.
+- Backend `/health` tra ve `ok: true`.
+- Frontend goi API bang URL production, khong con `localhost`.
+- `CORS_ORIGIN` co du ca domain chinh va `www`.
+- Database da import `backend/machnha_mysql.sql`.
+- `.env.local` khong nam tren GitHub.
+- HTTPS hoat dong cho ca frontend va backend.
+- Tai khoan admin/mac dinh neu co da doi mat khau.
+
+## Sinh lai SQL
+
+Neu sua `backend/database.json`, chay:
+
+```powershell
+npm run backend:sql
+```
+
+Lenh nay se sinh lai file duy nhat `backend/machnha_mysql.sql`.
+
+Neu muon import database bang Node:
+
+```powershell
+npm run backend:seed
+```

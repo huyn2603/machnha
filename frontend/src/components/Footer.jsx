@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook } from "lucide-react";
+import { API_BASE } from "../services/api";
 
 export default function Footer() {
   const [email,   setEmail]   = useState("");
@@ -13,12 +14,12 @@ export default function Footer() {
       setSubErr("Email không hợp lệ"); return;
     }
     setSubErr("");
-    // Lưu vào database.json (json-server)
+    // Luu vao backend/MySQL
     try {
-      const check = await fetch(`http://localhost:3001/subscribers?email=${encodeURIComponent(trimmed)}`);
+      const check = await fetch(`${API_BASE}/subscribers?email=${encodeURIComponent(trimmed)}`);
       const list  = await check.json();
       if (list.length > 0) { setSubDone(true); return; } // đã đăng ký rồi
-      await fetch("http://localhost:3001/subscribers", {
+      await fetch(`${API_BASE}/subscribers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: trimmed, createdAt: new Date().toISOString() }),

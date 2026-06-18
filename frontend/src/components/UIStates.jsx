@@ -16,7 +16,7 @@ export function ErrBox({ msg, onRetry }) {
       <div style={{ fontSize:"2.5rem", marginBottom:12 }}>⚠️</div>
       <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.3rem", color:"#e74c3c", marginBottom:8 }}>Không kết nối được</h3>
       <p style={{ color:"var(--text-light)", fontSize:"0.86rem", lineHeight:1.7, marginBottom:18 }}>
-        {msg || "Hãy chắc chắn json-server đang chạy."}
+        {msg || "Hay chac chan backend dang chay."}
       </p>
       <code style={{ display:"block", background:"var(--dark)", padding:"8px 14px", fontSize:"0.78rem", color:"var(--gold)", marginBottom:18, border:"1px solid rgba(201,168,76,0.2)" }}>npm run server</code>
       {onRetry && <button onClick={onRetry} className="btn-outline" style={{ fontSize:"0.8rem" }}>Thử Lại</button>}
