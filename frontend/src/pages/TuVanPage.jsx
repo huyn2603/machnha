@@ -226,7 +226,7 @@ function PaymentModal({ pkg, user, syncUser, onClose, onActivated }) {
     } finally {
       setBusy(false);
     }
-  }, [paymentDesc, pkg.amount, pkg.desc, pkg.id, pkg.name, pkg.slots, user?.email, user?.id, user?.name]);
+  }, [paymentDesc, pkg.amount, pkg.id, pkg.name, pkg.slots, user?.email, user?.id, user?.name]);
 
   useEffect(() => {
     createPendingPayment();
