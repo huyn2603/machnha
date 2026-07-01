@@ -1,6 +1,9 @@
 const bodyParser = require("body-parser");
+const bcrypt = require("bcryptjs");
 const cors = require("cors");
+const crypto = require("crypto");
 const express = require("express");
+const nodemailer = require("nodemailer");
 
 const { db, loadEnv } = require("./src/db");
 const store = require("./src/store");
@@ -17,6 +20,12 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+const resetRequests = new Map();
+const OTP_TTL_MS = 10 * 60 * 1000;
+const RESET_TOKEN_TTL_MS = 10 * 60 * 1000;
+const OTP_RESEND_MS = 60 * 1000;
+const PASSWORD_ROUNDS = 10;
 
 app.use(cors({
   origin(origin, callback) {
@@ -36,6 +45,43 @@ function sendError(res, error, status = 500) {
 
 function normalizeText(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function safeUser(user) {
+  if (!user) return user;
+  const { password: _password, ...safe } = user;
+  return safe;
+}
+
+function hashSecret(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
+}
+
+function isBcryptHash(value) {
+  return /^\$2[aby]\$\d{2}\$/.test(String(value || ""));
+}
+
+async function passwordMatches(password, storedPassword) {
+  if (isBcryptHash(storedPassword)) return bcrypt.compare(password, storedPassword);
+  return String(password) === String(storedPassword || "");
+}
+
+function getMailer() {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    throw new Error("Chưa cấu hình SMTP để gửi email OTP");
+  }
+  const port = Number(SMTP_PORT || 465);
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port,
+    secure: String(process.env.SMTP_SECURE || port === 465).toLowerCase() === "true",
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+  });
+}
+
+function validatePassword(password) {
+  return typeof password === "string" && password.length >= 8;
 }
 
 function requireGemini(res) {
@@ -108,6 +154,139 @@ app.get("/health", async (_req, res) => {
     res.json({ ok: true, database: "mysql", schema: "relational" });
   } catch (error) {
     sendError(res, error, 503);
+  }
+});
+
+app.post("/auth/login", async (req, res) => {
+  try {
+    const email = normalizeText(req.body?.email);
+    const password = String(req.body?.password || "");
+    const user = (await store.list("users", { email }))[0];
+    if (!user || !(await passwordMatches(password, user.password))) {
+      return res.status(401).json({ error: "Email hoặc mật khẩu không đúng" });
+    }
+    if (!user.active) return res.status(403).json({ error: "Tài khoản đã bị khóa" });
+
+    if (!isBcryptHash(user.password)) {
+      user.password = await bcrypt.hash(password, PASSWORD_ROUNDS);
+      await store.patch("users", user.id, { password: user.password });
+    }
+    res.json(safeUser(user));
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/auth/register", async (req, res) => {
+  try {
+    const email = normalizeText(req.body?.email);
+    const password = String(req.body?.password || "");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Email không hợp lệ" });
+    }
+    if (!validatePassword(password)) {
+      return res.status(400).json({ error: "Mật khẩu phải có ít nhất 8 ký tự" });
+    }
+    if ((await store.list("users", { email })).length) {
+      return res.status(409).json({ error: "Email này đã được đăng ký" });
+    }
+    const name = String(req.body?.name || "").trim();
+    if (!name) return res.status(400).json({ error: "Vui lòng nhập họ tên" });
+    const colors = ["#c0392b", "#2980b9", "#27ae60", "#e67e22", "#8e44ad"];
+    const user = await store.save("users", {
+      ...req.body,
+      id: Date.now(),
+      name,
+      email,
+      password: await bcrypt.hash(password, PASSWORD_ROUNDS),
+      role: "user",
+      active: true,
+      avatar: name.charAt(0).toUpperCase(),
+      color: colors[crypto.randomInt(colors.length)],
+      createdAt: new Date().toISOString(),
+    });
+    res.status(201).json(safeUser(user));
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/auth/forgot-password", async (req, res) => {
+  try {
+    const email = normalizeText(req.body?.email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Email không hợp lệ" });
+    }
+    const previous = resetRequests.get(email);
+    if (previous && Date.now() - previous.sentAt < OTP_RESEND_MS) {
+      return res.status(429).json({ error: "Vui lòng chờ 60 giây trước khi gửi lại mã" });
+    }
+
+    const user = (await store.list("users", { email }))[0];
+    if (user) {
+      const otp = String(crypto.randomInt(100000, 1000000));
+      await getMailer().sendMail({
+        from: process.env.MAIL_FROM || `Mạch Nhà <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: "Mã OTP đặt lại mật khẩu Mạch Nhà",
+        text: `Mã OTP của bạn là ${otp}. Mã có hiệu lực trong 10 phút. Không cung cấp mã này cho người khác.`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:24px;border:1px solid #d4af5a"><h2 style="color:#8a6a1f">Mạch Nhà</h2><p>Bạn vừa yêu cầu đặt lại mật khẩu.</p><p style="font-size:30px;font-weight:700;letter-spacing:8px;color:#8a6a1f">${otp}</p><p>Mã có hiệu lực trong <strong>10 phút</strong>. Không cung cấp mã này cho người khác.</p></div>`,
+      });
+      resetRequests.set(email, {
+        otpHash: hashSecret(otp),
+        expiresAt: Date.now() + OTP_TTL_MS,
+        sentAt: Date.now(),
+        attempts: 0,
+      });
+    }
+    res.json({ message: "Nếu email đã đăng ký, mã OTP đã được gửi đến hộp thư của bạn" });
+  } catch (error) {
+    sendError(res, error, error.message.includes("SMTP") ? 503 : 500);
+  }
+});
+
+app.post("/auth/verify-reset-otp", (req, res) => {
+  const email = normalizeText(req.body?.email);
+  const otp = String(req.body?.otp || "").trim();
+  const request = resetRequests.get(email);
+  if (!request || request.expiresAt < Date.now()) {
+    resetRequests.delete(email);
+    return res.status(400).json({ error: "Mã OTP không tồn tại hoặc đã hết hạn" });
+  }
+  if (request.attempts >= 5) {
+    resetRequests.delete(email);
+    return res.status(429).json({ error: "Bạn đã nhập sai quá nhiều lần. Vui lòng gửi mã mới" });
+  }
+  request.attempts += 1;
+  if (!/^\d{6}$/.test(otp) || hashSecret(otp) !== request.otpHash) {
+    return res.status(400).json({ error: "Mã OTP không đúng" });
+  }
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  request.resetTokenHash = hashSecret(resetToken);
+  request.resetTokenExpiresAt = Date.now() + RESET_TOKEN_TTL_MS;
+  delete request.otpHash;
+  res.json({ resetToken });
+});
+
+app.post("/auth/reset-password", async (req, res) => {
+  try {
+    const email = normalizeText(req.body?.email);
+    const resetToken = String(req.body?.resetToken || "");
+    const newPassword = String(req.body?.newPassword || "");
+    const request = resetRequests.get(email);
+    if (!request?.resetTokenHash || request.resetTokenExpiresAt < Date.now() || hashSecret(resetToken) !== request.resetTokenHash) {
+      return res.status(400).json({ error: "Phiên đổi mật khẩu không hợp lệ hoặc đã hết hạn" });
+    }
+    if (!validatePassword(newPassword)) {
+      return res.status(400).json({ error: "Mật khẩu mới phải có ít nhất 8 ký tự" });
+    }
+    const user = (await store.list("users", { email }))[0];
+    if (!user) return res.status(400).json({ error: "Không thể đổi mật khẩu cho tài khoản này" });
+    await store.patch("users", user.id, { password: await bcrypt.hash(newPassword, PASSWORD_ROUNDS) });
+    resetRequests.delete(email);
+    res.json({ message: "Đổi mật khẩu thành công. Bạn có thể đăng nhập ngay" });
+  } catch (error) {
+    sendError(res, error);
   }
 });
 
@@ -247,7 +426,11 @@ app.post("/analysis-payments/bank-webhook", async (req, res) => {
 app.get("/:collection", async (req, res) => {
   try {
     if (!store.collections.has(req.params.collection)) return res.status(404).json({ error: "Collection not found" });
-    res.json(await store.list(req.params.collection, req.query));
+    if (req.params.collection === "users" && Object.prototype.hasOwnProperty.call(req.query, "password")) {
+      return res.status(400).json({ error: "Không được tra cứu người dùng bằng mật khẩu" });
+    }
+    const items = await store.list(req.params.collection, req.query);
+    res.json(req.params.collection === "users" ? items.map(safeUser) : items);
   } catch (error) {
     sendError(res, error);
   }
@@ -258,7 +441,7 @@ app.get("/:collection/:id", async (req, res) => {
     if (!store.collections.has(req.params.collection)) return res.status(404).json({ error: "Collection not found" });
     const item = await store.get(req.params.collection, req.params.id);
     if (!item) return res.status(404).json({ error: "Record not found" });
-    res.json(item);
+    res.json(req.params.collection === "users" ? safeUser(item) : item);
   } catch (error) {
     sendError(res, error);
   }
@@ -267,8 +450,11 @@ app.get("/:collection/:id", async (req, res) => {
 app.post("/:collection", async (req, res) => {
   try {
     if (!store.collections.has(req.params.collection)) return res.status(404).json({ error: "Collection not found" });
+    if (req.params.collection === "users") {
+      return res.status(405).json({ error: "Vui lòng dùng API đăng ký tài khoản" });
+    }
     const item = await store.save(req.params.collection, { ...req.body, id: req.body?.id ?? Date.now() });
-    res.status(201).json(item);
+    res.status(201).json(req.params.collection === "users" ? safeUser(item) : item);
   } catch (error) {
     sendError(res, error);
   }
@@ -277,9 +463,13 @@ app.post("/:collection", async (req, res) => {
 app.put("/:collection/:id", async (req, res) => {
   try {
     if (!store.collections.has(req.params.collection)) return res.status(404).json({ error: "Collection not found" });
+    if (req.params.collection === "users" && Object.prototype.hasOwnProperty.call(req.body || {}, "password")) {
+      return res.status(403).json({ error: "Mật khẩu chỉ có thể đổi qua quy trình OTP" });
+    }
     const exists = await store.get(req.params.collection, req.params.id);
     if (!exists) return res.status(404).json({ error: "Record not found" });
-    res.json(await store.save(req.params.collection, { ...req.body, id: exists.id }));
+    const item = await store.save(req.params.collection, { ...req.body, id: exists.id });
+    res.json(req.params.collection === "users" ? safeUser(item) : item);
   } catch (error) {
     sendError(res, error);
   }
@@ -288,9 +478,12 @@ app.put("/:collection/:id", async (req, res) => {
 app.patch("/:collection/:id", async (req, res) => {
   try {
     if (!store.collections.has(req.params.collection)) return res.status(404).json({ error: "Collection not found" });
+    if (req.params.collection === "users" && Object.prototype.hasOwnProperty.call(req.body || {}, "password")) {
+      return res.status(403).json({ error: "Mật khẩu chỉ có thể đổi qua quy trình OTP" });
+    }
     const item = await store.patch(req.params.collection, req.params.id, req.body || {});
     if (!item) return res.status(404).json({ error: "Record not found" });
-    res.json(item);
+    res.json(req.params.collection === "users" ? safeUser(item) : item);
   } catch (error) {
     sendError(res, error);
   }

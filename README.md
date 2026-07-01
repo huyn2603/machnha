@@ -97,6 +97,23 @@ GEMINI_TEXT_MODEL=gemini-2.5-flash
 GEMINI_API_VERSION=v1beta
 ```
 
+De gui OTP quen mat khau qua Gmail:
+
+1. Bat xac minh 2 buoc cho tai khoan Google.
+2. Vao Google Account > Security > App passwords, tao mat khau ung dung cho website.
+3. Dien cac bien sau vao `.env.local` (khong dung mat khau Gmail thong thuong):
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_16_character_app_password
+MAIL_FROM=Mach Nha <your_email@gmail.com>
+```
+
+OTP co hieu luc 10 phut, toi da 5 lan nhap sai va chi dung duoc mot lan. Sau khi OTP dung, nguoi dung moi duoc nhap mat khau moi.
+
 ## Chay app
 
 ```powershell
@@ -211,7 +228,13 @@ DB_SSL=true
 GEMINI_API_KEY=...
 GEMINI_TEXT_MODEL=gemini-2.5-flash
 GEMINI_API_VERSION=v1beta
-PAYMENT_WEBHOOK_SECRET=...
+  PAYMENT_WEBHOOK_SECRET=...
+  SMTP_HOST=smtp.gmail.com
+  SMTP_PORT=465
+  SMTP_SECURE=true
+  SMTP_USER=your_email@gmail.com
+  SMTP_PASS=your_google_app_password
+  MAIL_FROM=Mach Nha <your_email@gmail.com>
 ```
 
 Sau khi deploy, test:

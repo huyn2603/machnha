@@ -86,7 +86,7 @@ export default function Home() {
           {/* RIGHT — Preview form + CTA scroll */}
           <div style={{background:"rgba(13,11,8,0.6)",backdropFilter:"blur(12px)",border:`1px solid ${s.accent}30`,borderRadius:8,padding:"32px 28px"}}>
             <div style={{textAlign:"center",marginBottom:20}}>
-              <div style={{fontSize:"2.5rem",marginBottom:10}}>☯</div>
+              <img src="/assets/mach-nha-logo.png" alt="Logo Mạch Nhà" style={{width:90,height:90,objectFit:"cover",borderRadius:"50%",background:"white",marginBottom:10}}/>
               <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"1.7rem",fontWeight:400,letterSpacing:3,color:"var(--white)",marginBottom:8}}>
                 Vật Phẩm <span className="gold-text">Hợp Mệnh</span>
               </h2>

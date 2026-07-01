@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { requestPasswordOtp, resetPassword, verifyPasswordOtp } from "../services/api";
 
 export default function AuthPage() {
   const { login, register, loading, error } = useAuth();
@@ -11,6 +12,10 @@ export default function AuthPage() {
   const [tab,   setTab]   = useState(location.state?.tab || "login");
   const [showPw,setShowPw]= useState(false);
   const [ferr,  setFerr]  = useState({});
+  const [forgotStep, setForgotStep] = useState(null);
+  const [forgot, setForgot] = useState({ email:"", otp:"", newPassword:"", confirm:"", resetToken:"" });
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState("");
 
   const [ld, setLd] = useState({ email:"", password:"" });
   const [rd, setRd] = useState({ name:"", email:"", password:"", confirm:"", phone:"", birthYear:"", gender:"" });
@@ -28,7 +33,7 @@ export default function AuthPage() {
     const errs = {};
     if (!rd.name.trim())                                    errs.name     = "Vui lòng nhập họ tên";
     if (!rd.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))     errs.email    = "Email không hợp lệ";
-    if (rd.password.length < 6)                             errs.password = "Tối thiểu 6 ký tự";
+    if (rd.password.length < 8)                             errs.password = "Tối thiểu 8 ký tự";
     if (rd.password !== rd.confirm)                         errs.confirm  = "Mật khẩu không khớp";
     if (!rd.phone.match(/^[0-9]{10,11}$/))                  errs.phone    = "Số điện thoại không hợp lệ";
     if (Object.keys(errs).length) { setFerr(errs); return; }
@@ -36,6 +41,36 @@ export default function AuthPage() {
       await register({ name:rd.name, email:rd.email, password:rd.password, phone:rd.phone, birthYear:rd.birthYear?parseInt(rd.birthYear):null, gender:rd.gender||null });
       navigate(from, { replace:true });
     } catch {}
+  };
+
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setFerr({}); setForgotMessage(""); setForgotLoading(true);
+    try {
+      if (forgotStep === "email") {
+        if (!forgot.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) throw new Error("Email không hợp lệ");
+        const result = await requestPasswordOtp(forgot.email);
+        setForgotMessage(result.message);
+        setForgotStep("otp");
+      } else if (forgotStep === "otp") {
+        if (!/^\d{6}$/.test(forgot.otp)) throw new Error("OTP phải gồm đúng 6 chữ số");
+        const result = await verifyPasswordOtp(forgot.email, forgot.otp);
+        setForgot(p => ({ ...p, resetToken:result.resetToken }));
+        setForgotMessage("OTP chính xác. Hãy tạo mật khẩu mới.");
+        setForgotStep("reset");
+      } else {
+        if (forgot.newPassword.length < 8) throw new Error("Mật khẩu mới phải có ít nhất 8 ký tự");
+        if (forgot.newPassword !== forgot.confirm) throw new Error("Mật khẩu xác nhận không khớp");
+        const result = await resetPassword(forgot.email, forgot.resetToken, forgot.newPassword);
+        setForgotMessage(result.message);
+        setLd({ email:forgot.email, password:"" });
+        setForgotStep("done");
+      }
+    } catch (err) {
+      setFerr({ forgot:err.message });
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   const inp = (style={}) => ({
@@ -53,28 +88,58 @@ export default function AuthPage() {
 
         {/* Logo */}
         <div style={{ textAlign:"center", marginBottom:28 }}>
-          <div style={{ fontSize:"2.2rem", marginBottom:8 }}>☯</div>
+          <img src="/assets/mach-nha-logo.png" alt="Logo Mạch Nhà" style={{ width:86, height:86, objectFit:"cover", borderRadius:"50%", marginBottom:8, background:"white" }}/>
           <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.5rem", fontWeight:500, letterSpacing:4, background:"linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light))", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
             Phong Thủy Mạch Nhà
           </h1>
           <p style={{ color:"var(--text-light)", fontSize:"0.75rem", letterSpacing:2, marginTop:4 }}>
-            {tab==="login" ? "Chào mừng trở lại" : "Tạo tài khoản mới"}
+            {forgotStep ? "Khôi phục mật khẩu an toàn" : tab==="login" ? "Chào mừng trở lại" : "Tạo tài khoản mới"}
           </p>
         </div>
 
         {/* Tabs */}
-        <div style={{ display:"flex", marginBottom:24, borderBottom:"1px solid rgba(201,168,76,0.15)" }}>
+        {!forgotStep && <div style={{ display:"flex", marginBottom:24, borderBottom:"1px solid rgba(201,168,76,0.15)" }}>
           {["login","register"].map(t => (
             <button key={t} onClick={()=>{ setTab(t); setFerr({}); }} style={{ flex:1, padding:"11px 0", background:"none", border:"none", borderBottom:`2px solid ${tab===t?"var(--gold)":"transparent"}`, color: tab===t?"var(--gold)":"var(--text-light)", cursor:"pointer", fontFamily:"Raleway,sans-serif", fontWeight:700, fontSize:"0.78rem", letterSpacing:2, textTransform:"uppercase", transition:"all 0.3s", marginBottom:-1 }}>
               {t==="login" ? "Đăng Nhập" : "Đăng Ký"}
             </button>
           ))}
-        </div>
+        </div>}
 
         {/* API error */}
         {error && <div style={{ background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.4)", padding:"11px 15px", marginBottom:18, fontSize:"0.83rem", color:"#e74c3c", borderRadius:2 }}>⚠️ {error}</div>}
 
-        {tab === "login" ? (
+        {forgotStep ? (
+          <form onSubmit={handleForgot}>
+            <div style={{ display:"flex", justifyContent:"center", gap:7, marginBottom:22 }}>
+              {["email","otp","reset"].map((step, index) => {
+                const current = ["email","otp","reset"].indexOf(forgotStep);
+                return <span key={step} style={{ width:42, height:4, borderRadius:4, background:index <= current ? "var(--gold)" : "rgba(201,168,76,0.18)" }}/>;
+              })}
+            </div>
+            {forgotMessage && <div style={{ background:"rgba(39,174,96,0.1)", border:"1px solid rgba(39,174,96,0.4)", padding:"11px 15px", marginBottom:16, fontSize:"0.82rem", color:"#7bd89c" }}>{forgotMessage}</div>}
+            {ferr.forgot && <div style={{ background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.4)", padding:"11px 15px", marginBottom:16, fontSize:"0.82rem", color:"#e74c3c" }}>⚠️ {ferr.forgot}</div>}
+
+            {forgotStep === "email" && <div style={{ marginBottom:18 }}>
+              <label style={{ display:"block", fontSize:"0.68rem", letterSpacing:2, color:"var(--gold)", textTransform:"uppercase", marginBottom:7, fontWeight:700 }}>Email đã đăng ký</label>
+              <div style={{ position:"relative" }}><Mail size={14} style={{ position:"absolute", left:13, top:"50%", transform:"translateY(-50%)", color:"var(--text-light)" }}/><input type="email" value={forgot.email} onChange={e=>setForgot(p=>({...p,email:e.target.value}))} style={inp()} autoFocus required/></div>
+            </div>}
+
+            {forgotStep === "otp" && <div style={{ marginBottom:18 }}>
+              <label style={{ display:"block", fontSize:"0.68rem", letterSpacing:2, color:"var(--gold)", textTransform:"uppercase", marginBottom:7, fontWeight:700 }}>Mã OTP trong email</label>
+              <input inputMode="numeric" maxLength={6} value={forgot.otp} onChange={e=>setForgot(p=>({...p,otp:e.target.value.replace(/\D/g,"")}))} style={inp({ padding:"14px", textAlign:"center", fontSize:"1.35rem", letterSpacing:10 })} autoFocus required/>
+              <p style={{ color:"var(--text-light)", fontSize:"0.74rem", marginTop:8 }}>Mã gồm 6 số và hết hạn sau 10 phút.</p>
+            </div>}
+
+            {forgotStep === "reset" && <>
+              <div style={{ marginBottom:13 }}><label style={{ display:"block", fontSize:"0.68rem", letterSpacing:2, color:"var(--gold)", textTransform:"uppercase", marginBottom:7, fontWeight:700 }}>Mật khẩu mới</label><div style={{ position:"relative" }}><Lock size={14} style={{ position:"absolute", left:13, top:"50%", transform:"translateY(-50%)", color:"var(--text-light)" }}/><input type={showPw?"text":"password"} value={forgot.newPassword} onChange={e=>setForgot(p=>({...p,newPassword:e.target.value}))} style={inp({ paddingRight:40 })} minLength={8} required/><button type="button" onClick={()=>setShowPw(p=>!p)} style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"var(--text-light)", cursor:"pointer" }}>{showPw ? <EyeOff size={15}/> : <Eye size={15}/>}</button></div></div>
+              <div style={{ marginBottom:18 }}><label style={{ display:"block", fontSize:"0.68rem", letterSpacing:2, color:"var(--gold)", textTransform:"uppercase", marginBottom:7, fontWeight:700 }}>Nhập lại mật khẩu mới</label><div style={{ position:"relative" }}><Lock size={14} style={{ position:"absolute", left:13, top:"50%", transform:"translateY(-50%)", color:"var(--text-light)" }}/><input type="password" value={forgot.confirm} onChange={e=>setForgot(p=>({...p,confirm:e.target.value}))} style={inp()} minLength={8} required/></div></div>
+            </>}
+
+            {forgotStep === "done" ? <button type="button" className="btn-gold" style={{ width:"100%", padding:"13px" }} onClick={()=>{ setForgotStep(null); setForgotMessage(""); setFerr({}); }}>Đăng Nhập Ngay</button> : <button type="submit" className="btn-gold" style={{ width:"100%", padding:"13px" }} disabled={forgotLoading}>{forgotLoading ? "Đang xử lý..." : forgotStep === "email" ? "Gửi Mã OTP" : forgotStep === "otp" ? "Xác Minh OTP" : "Đổi Mật Khẩu"}</button>}
+            {forgotStep !== "done" && <button type="button" onClick={()=>{ setForgotStep(null); setForgotMessage(""); setFerr({}); }} style={{ width:"100%", marginTop:12, padding:8, border:0, background:"none", color:"var(--text-light)", cursor:"pointer" }}>← Quay lại đăng nhập</button>}
+          </form>
+        ) : tab === "login" ? (
           <form onSubmit={handleLogin}>
             {/* Email */}
             <div style={{ marginBottom:14 }}>
@@ -96,7 +161,7 @@ export default function AuthPage() {
               </div>
             </div>
             <div style={{ textAlign:"right", marginBottom:18 }}>
-              <span style={{ fontSize:"0.75rem", color:"var(--gold)", cursor:"pointer" }}>Quên mật khẩu?</span>
+              <button type="button" onClick={()=>{ setForgotStep("email"); setForgot(p=>({...p,email:ld.email})); setFerr({}); }} style={{ fontSize:"0.75rem", color:"var(--gold)", cursor:"pointer", border:0, background:"none", padding:0 }}>Quên mật khẩu?</button>
             </div>
             <button type="submit" className="btn-gold" style={{ width:"100%", padding:"13px" }} disabled={loading}>
               {loading ? "Đang đăng nhập..." : "✦ Đăng Nhập ✦"}

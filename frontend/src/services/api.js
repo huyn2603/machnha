@@ -86,13 +86,24 @@ export const getUserByEmail = async (email) => {
   return result[0] || null;
 };
 export const loginUser = async (email, password) => {
-  const result = await req(`/users?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
-  return result[0] || null;
+  return req("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
 };
 export const registerUser = (data) =>
-  req("/users", {
+  req("/auth/register", {
     method: "POST",
-    body: JSON.stringify({ ...data, id: Date.now(), createdAt: new Date().toISOString() }),
+    body: JSON.stringify(data),
+  });
+export const requestPasswordOtp = (email) =>
+  req("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) });
+export const verifyPasswordOtp = (email, otp) =>
+  req("/auth/verify-reset-otp", { method: "POST", body: JSON.stringify({ email, otp }) });
+export const resetPassword = (email, resetToken, newPassword) =>
+  req("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ email, resetToken, newPassword }),
   });
 export const patchUser = (id, data) =>
   req(`/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });

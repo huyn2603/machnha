@@ -58,8 +58,8 @@ const AI_PACKAGES = [
     cta:"Mua Gói 1 Lượt — 50k",
   },
   {
-    id:"ai-2", name:"Gói 2 Lượt", price:"149.000₫", amount:149000,
-    unit:"/ 2 người", slots:2, badge:"TIẾT KIỆM", highlight:true,
+    id:"ai-2", name:"Gói 2 Lượt", price:"90.000₫", amount:90000,
+    unit:"/ 2 lượt", slots:2, badge:"TIẾT KIỆM 10%", highlight:true,
     icon:<Users size={26}/>, color:"linear-gradient(135deg,rgba(212,175,90,0.14),rgba(212,175,90,0.06))", border:"var(--gold)",
     desc:"Goi 2 Luot - Phong Thuy Mach Nha",
     note:"Mở được 2 ô nội dung khóa (dùng cho 1 hoặc 2 người)",
@@ -72,11 +72,11 @@ const AI_PACKAGES = [
       { dim:"Tư vấn tình duyên & hôn nhân" },
       { dim:"Màu sắc, số & hướng hợp mệnh" },
     ],
-    cta:"Mua Gói 2 Lượt — 149k",
+    cta:"Mua Gói 2 Lượt — 90k",
   },
   {
-    id:"ai-4", name:"Gói 4 Lượt", price:"499.000₫", amount:499000,
-    unit:"/ 4 người", slots:4, badge:"ĐẦY ĐỦ NHẤT", highlight:false,
+    id:"ai-4", name:"Gói 4 Lượt", price:"160.000₫", amount:160000,
+    unit:"/ 4 lượt", slots:4, badge:"TIẾT KIỆM 20%", highlight:false,
     icon:<Crown size={26}/>, color:"rgba(74,144,217,0.07)", border:"rgba(74,144,217,0.4)",
     accentColor:"#4A90D9",
     desc:"Goi 4 Luot - Phong Thuy Mach Nha",
@@ -90,7 +90,7 @@ const AI_PACKAGES = [
       "✦ Tư vấn tình duyên & hôn nhân",
       "✦ Màu sắc, số & hướng hợp mệnh",
     ],
-    cta:"Mua Gói 4 Lượt — 499k",
+    cta:"Mua Gói 4 Lượt — 160k",
   },
 ];
 

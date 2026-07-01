@@ -41,8 +41,8 @@ export default function Navbar() {
   /* Nav links — "Tư Vấn" luôn hiển thị nổi bật */
   const links = [
     { to: "/",       label: "Trang Chủ" },
-    { to: "/tu-van", label: "Tư Vấn",   icon: <Sparkles size={13}/>, highlight: true },
     { to: "/shop",   label: "Cửa Hàng" },
+    { to: "/tu-van", label: "Tư Vấn",   icon: <Sparkles size={15}/>, highlight: true },
     { to: "/blog",   label: "Kiến Thức" },
     { to: "/about",  label: "Giới Thiệu" },
     { to: "/contact",label: "Liên Hệ" },
@@ -80,12 +80,7 @@ export default function Navbar() {
         }}>
           {/* Logo */}
           <Link to="/" style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-            <div style={{
-              width: 42, height: 42, borderRadius: "50%",
-              background: "linear-gradient(135deg, var(--gold-dark), var(--gold))",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "1.35rem", boxShadow: "0 0 16px rgba(212,175,90,0.3)",
-            }}>☯</div>
+            <img src="/assets/mach-nha-logo.png" alt="Logo Mạch Nhà" style={{ width:50, height:50, borderRadius:"50%", objectFit:"cover", background:"white", boxShadow:"0 0 18px rgba(212,175,90,0.3)", border:"1px solid rgba(212,175,90,0.45)" }}/>
             <div>
               <div style={{
                 fontFamily: "'Cormorant Garamond',serif", fontSize: "1.22rem",
@@ -109,7 +104,7 @@ export default function Navbar() {
               return (
                 <Link key={l.to} to={l.to} style={{
                   display: "inline-flex", alignItems: "center", gap: 5,
-                  padding: "7px 10px",
+                  padding: l.highlight ? "10px 17px" : "7px 10px",
                   fontSize: "0.78rem", letterSpacing: 0.8, textTransform: "uppercase", fontWeight: 700,
                   color: l.admin ? "var(--gold)" : l.highlight && active ? "var(--black)" : l.highlight ? "var(--gold-light)" : active ? "var(--gold)" : "var(--cream)",
                   background: l.highlight
@@ -119,7 +114,8 @@ export default function Navbar() {
                     : active ? "rgba(212,175,90,0.1)" : "transparent",
                   border: l.highlight ? `1px solid ${active ? "var(--gold-light)" : "rgba(212,175,90,0.45)"}` : "1px solid transparent",
                   borderRadius: 999,
-                  boxShadow: l.highlight ? "0 0 18px rgba(212,175,90,0.16)" : "none",
+                  boxShadow: l.highlight ? "0 0 22px rgba(212,175,90,0.28)" : "none",
+                  transform: l.highlight ? "translateY(-1px)" : "none",
                   transition: "all 0.25s",
                 }}
                   onMouseEnter={e => { e.currentTarget.style.color = "var(--gold)"; e.currentTarget.style.background = "rgba(212,175,90,0.1)"; }}

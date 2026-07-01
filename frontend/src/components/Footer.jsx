@@ -38,7 +38,7 @@ export default function Footer() {
         {/* Brand */}
         <div>
           <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
-            <div style={{ width:40, height:40, borderRadius:"50%", background:"linear-gradient(135deg,var(--gold-dark),var(--gold))", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.3rem" }}>☯</div>
+            <img src="/assets/mach-nha-logo.png" alt="Logo Mạch Nhà" style={{ width:46, height:46, borderRadius:"50%", objectFit:"cover", background:"white", border:"1px solid rgba(212,175,90,0.45)" }}/>
             <div>
               <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.2rem", fontWeight:600, letterSpacing:2, background:"linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light))", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>PHONG THỦY</div>
               <div style={{ fontSize:"0.55rem", letterSpacing:4, color:"var(--text-light)" }}>MẠCH NHÀ</div>
